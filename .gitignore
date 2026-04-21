@@ -1,0 +1,57 @@
+﻿# =========================
+# Go Modules / Dependencies
+# =========================
+# Keep go.sum tracked for reproducible builds.
+# vendor/ can be tracked when vendoring is intentional.
+
+# =========================
+# Build Outputs / Binaries
+# =========================
+bin/
+build/
+dist/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+
+# =========================
+# Go Tooling Caches
+# =========================
+.coverprofile
+coverage.out
+.goenv/
+
+# =========================
+# Logs
+# =========================
+*.log
+
+# =========================
+# Environment / Local Config
+# =========================
+.env
+.env.*
+*.local
+
+# =========================
+# Editor / IDE
+# =========================
+.vscode/
+.idea/
+*.iml
+*.suo
+*.user
+*.userossc
+*.sln.docstates
+*.swp
+*.swo
+*~
+
+# =========================
+# OS Files
+# =========================
+.DS_Store
+Thumbs.db
