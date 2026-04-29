@@ -1,31 +1,31 @@
 ﻿flowchart LR
-    Client[Cliente HTTP]
+    Client["Cliente HTTP"]
 
-    subgraph API[Camada API (Fiber)]
-        Router[Routes/Handlers]
+    subgraph API["Camada API - Fiber"]
+        Router["Routes/Handlers"]
     end
 
-    subgraph Service[Camada Service]
-        TaskService[TaskService]
+    subgraph Service["Camada Service"]
+        TaskService["TaskService"]
     end
 
-    subgraph Domain[Componente de Dominio]
-        PriorityAdvisor[PriorityAdvisor]
+    subgraph Domain["Componente de Dominio"]
+        PriorityAdvisor["PriorityAdvisor"]
     end
 
-    subgraph Repository[Camada Repository]
-        TaskRepo[TaskRepository]
+    subgraph Repository["Camada Repository"]
+        TaskRepo["TaskRepository"]
     end
 
-    DB[(Banco de Dados)]
+    DB[("Banco de Dados")]
 
-    Client -->|HTTP JSON| Router
-    Router -->|DTO de entrada| TaskService
-    TaskService -->|consulta/sugestao| PriorityAdvisor
-    PriorityAdvisor -->|prioridade sugerida| TaskService
-    TaskService -->|persistencia/leitura| TaskRepo
-    TaskRepo -->|SQL| DB
-    DB -->|dados| TaskRepo
-    TaskRepo -->|entidade| TaskService
-    TaskService -->|DTO de saida| Router
-    Router -->|HTTP JSON| Client
+    Client -->|"HTTP JSON"| Router
+    Router -->|"DTO de entrada"| TaskService
+    TaskService -->|"consulta/sugestao"| PriorityAdvisor
+    PriorityAdvisor -->|"prioridade sugerida"| TaskService
+    TaskService -->|"persistencia/leitura"| TaskRepo
+    TaskRepo -->|"SQL"| DB
+    DB -->|"dados"| TaskRepo
+    TaskRepo -->|"entidade"| TaskService
+    TaskService -->|"DTO de saida"| Router
+    Router -->|"HTTP JSON"| Client
