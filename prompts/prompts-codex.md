@@ -135,44 +135,43 @@ Resposta em checklist
 Contexto: Tenho TaskService com CRUD de tarefas.
 Objetivo: Gerar suite de testes com uma biblioteca semelhante ao Pytest mas para Go, cobrindo criacao, listagem, atualizacao, exclusao e caso de erro por ID inexistente.
 Estilo: Testes claros, nomes descritivos e fixtures simples.
-Resposta: Codigo completo de testes no arquivo tests/test_task_service.go.
+Resposta: Codigo completo de testes no arquivo tests/task_service_test.go.
 ```
 ## Prompt 2 - Testes do PriorityAdvisor
 ```
-Contexto: Preciso de persistencia inicial enxuta para viabilizar a primeira release.
-Objetivo: Criar TaskRepository em memoria com create, list, get_by_id, update e delete.
-Estilo: Go tipado, sem dependencias externas.
-Resposta: Codigo completo de app/repositories/task_repository.go
+Contexto: PriorityAdvisor possui heuristica local e fallback quando a chamada externa falha.
+Objetivo: Gerar testes para os tres niveis de prioridade e para fallback.
+Estilo: Usar monkeypatch quando necessario. Se monkeypatch so existir para python, usar a ferramenta equivalente para Go.
+Resposta: Codigo completo de testes no arquivo tests/priority_advisor_test.go.
 ```
-## Prompt 3 - Service com regra de prioridade
+## Prompt 3 - Testes de API
 ```
-Contexto: A prioridade da tarefa pode ser sugerida automaticamente.
-Objetivo: Criar TaskService que use TaskRepository e PriorityAdvisor.
-Estilo: Separar regra de negocio da camada de API
-Resposta: Codigo de app/services/task_service.go
-```
-
-## Prompt 4 - PriorityAdvisor com fallback
-```
-Contexto: Quero rodar sem custo de API quando nao houver chave.
-Objetivo: Implementar PriorityAdvisor com heuristica local e chamada opcional a LLM quando OPENAI_API_KEY existir.
-Estilo: Falha segura, timeout e fallback obrigatorio.
-Resposta: Codigo de app/services/priority_advisor.go
+Contexto: API Fiber com endpoints CRUD de /tasks.
+Objetivo: Criar testes de rota com TestClient para status 201, 200, 204 e 404.
+Estilo: Isolar dependencia de repositorio para evitar estado global entre testes.
+Resposta: Codigo de tests/task_routes_test.go
 ```
 
-## Prompt 5 - Rotas CRUD
+## Prompt 4 - Refatoração DRY/SRP
 ```
-Contexto: Fiber com TaskService pronto.
-Objetivo: Criar rotas POST/GET/PUT/DELETE para tarefas com status HTTP corretos e tratamento de 404.
-Estilo: Router separado em app/api/task_routes.go.
-Resposta: Apenas o codigo de arquivo.
+Contexto: Analise os arquivos app/services/task_service.go e app/repositories/task_repository.go.
+Objetivo: Sugerir refatoracao com foco em DRY e SRP sem mudar comportamento externo.
+Resposta: 1) lista de mudancas propostas e 2) patch sugerido por arquivo.
 ```
 
-## Prompt 6 - Revisao Tecnica
+## Prompt 5 - README final tecnico
 ```
-Revise os arquivos do core da API e responda:
-1) Quais pontos de acoplamento estao altos?
-2) Onde faltam validacoes?
-3) Quais 5 testes devo priorizar na proxima release?
-Resposta em checklist
+Contexto: MVP de micro-API de tarefas com prioridade assistida por IA.
+Objetivo: Atualizar o arquivo README atual, com o conteudo completo com instalacao, execucao, testes, arquitetura, uso da IA, limitacoes e proximos passos.
+Estilo: Markdown profissional e objetivo.
+Resposta: README inteiro.
+```
+
+## Prompt 6 - Revisao final de qualidade
+```
+Com base no codigo e nos testes atuais, gere um checklist com:
+1) Riscos tecnicos restantes
+2) Gaps de cobertura de teste
+3) Melhorias prioritarias para a proxima release
+Resposta em bullets curtos.
 ```
