@@ -41,7 +41,6 @@ tests/
 ```powershell
 git clone <url-do-repositorio>
 cd "Labotatorio Projeto"
-copy .env.example .env
 make install
 make run
 ```
@@ -57,6 +56,12 @@ curl http://localhost:8080/tasks
 
 Arquivo recomendado: `.env` (baseado em `.env.example`).
 
+Importante:
+
+- A aplicacao le variaveis do ambiente do processo (`os.Getenv`).
+- O arquivo `.env` **nao e carregado automaticamente**.
+- Voce precisa exportar/setar as variaveis antes de executar `make run`/`go run ./app`.
+
 Variaveis:
 
 - `OPENAI_API_KEY`: chave da API OpenAI (opcional)
@@ -67,6 +72,26 @@ Variaveis:
 Observacao:
 
 - Sem `OPENAI_API_KEY`, a API funciona normalmente usando apenas heuristica local.
+
+### Como apontar env (PowerShell)
+
+Sem LLM (somente heuristica local):
+
+```powershell
+$env:OPENAI_API_KEY=""
+$env:OPENAI_BASE_URL="https://api.openai.com/v1"
+$env:OPENAI_MODEL="gpt-4.1-mini"
+$env:PRIORITY_ADVISOR_TIMEOUT="4s"
+```
+
+Com LLM (habilitado):
+
+```powershell
+$env:OPENAI_API_KEY="<SUA_CHAVE_AQUI>"
+$env:OPENAI_BASE_URL="https://api.openai.com/v1"
+$env:OPENAI_MODEL="gpt-4.1-mini"
+$env:PRIORITY_ADVISOR_TIMEOUT="4s"
+```
 
 ## Comandos de Desenvolvimento
 
