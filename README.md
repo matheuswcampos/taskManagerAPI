@@ -1,6 +1,6 @@
-# Micro-API de Tarefas com Priorizacao Assistida por IA
+# Micro-API de Tarefas com Priorização Assistida por IA
 
-API REST em Go (Fiber) para gestao de tarefas com sugestao de prioridade por heurística local e integração opcional com LLM.
+API REST em Go (Fiber) para gestão de tarefas com sugestão de prioridade por heurística local e integração opcional com LLM.
 
 ## Objetivo
 
@@ -13,7 +13,7 @@ API REST em Go (Fiber) para gestao de tarefas com sugestao de prioridade por heu
 - Go `1.25.x`
 - Fiber `v2`
 - Arquitetura em camadas: `api -> services -> repositories`
-- Persistencia em memoria (map com mutex)
+- Persistência em memória (map com mutex)
 
 ## Estrutura do Projeto
 
@@ -21,8 +21,8 @@ API REST em Go (Fiber) para gestao de tarefas com sugestao de prioridade por heu
 app/
   api/                # Handlers e rotas HTTP
   models/             # Entidades e DTOs
-  repositories/       # Persistencia em memoria
-  services/           # Regras de negocio + PriorityAdvisor
+  repositories/       # Persistência em memoria
+  services/           # Regras de negócio + PriorityAdvisor
   main.go             # Bootstrap HTTP
 docs/
 tests/
@@ -30,7 +30,7 @@ tests/
 
 ## Reprodução Rápida (Máquina Limpa)
 
-### Pre-requisitos
+### Pré-requisitos
 
 - Go `1.25.x` instalado (`go version`)
 - Git
@@ -60,7 +60,7 @@ Arquivo recomendado: `.env` (baseado em `.env.example`).
 
 Importante:
 
-- A aplicação le variáveis do ambiente do processo (`os.Getenv`).
+- A aplicação lê variáveis do ambiente do processo (`os.Getenv`).
 - O script `.\activate-go-env.ps1` continua necessário: ele prepara cache local do Go e carrega o `.env` para a sessão atual.
 - O `.env` e fonte de configuração local; o script apenas exporta essas variáveis para o processo.
 
