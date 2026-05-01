@@ -1,6 +1,6 @@
 # Micro-API de Tarefas com Priorizacao Assistida por IA
 
-API REST em Go (Fiber) para gestao de tarefas com sugestao de prioridade por heuristica local e integracao opcional com LLM.
+API REST em Go (Fiber) para gestao de tarefas com sugestao de prioridade por heurística local e integração opcional com LLM.
 
 ## Objetivo
 
@@ -28,7 +28,7 @@ docs/
 tests/
 ```
 
-## Reproducao Rapida (Maquina Limpa)
+## Reprodução Rápida (Máquina Limpa)
 
 ### Pre-requisitos
 
@@ -54,17 +54,17 @@ curl http://localhost:8080/health
 curl http://localhost:8080/tasks
 ```
 
-## Configuracao
+## Configuração
 
 Arquivo recomendado: `.env` (baseado em `.env.example`).
 
 Importante:
 
-- A aplicacao le variaveis do ambiente do processo (`os.Getenv`).
-- O script `.\activate-go-env.ps1` continua necessario: ele prepara cache local do Go e carrega o `.env` para a sessao atual.
-- O `.env` e fonte de configuracao local; o script apenas exporta essas variaveis para o processo.
+- A aplicação le variáveis do ambiente do processo (`os.Getenv`).
+- O script `.\activate-go-env.ps1` continua necessário: ele prepara cache local do Go e carrega o `.env` para a sessão atual.
+- O `.env` e fonte de configuração local; o script apenas exporta essas variáveis para o processo.
 
-Variaveis:
+Variáveis:
 
 - `OPENAI_API_KEY`: chave da API OpenAI (opcional)
 - `OPENAI_BASE_URL`: default `https://api.openai.com/v1`
@@ -73,7 +73,7 @@ Variaveis:
 
 Observacao:
 
-- Sem `OPENAI_API_KEY`, a API funciona normalmente usando apenas heuristica local.
+- Sem `OPENAI_API_KEY`, a API funciona normalmente usando apenas heurística local.
 
 ### Como apontar env (PowerShell)
 
@@ -88,7 +88,7 @@ Depois ajuste os valores no `.env` conforme necessidade.
 
 Alternativa sem script (manual na sessao):
 
-Sem LLM (somente heuristica local):
+Sem LLM (somente heurística local):
 
 ```powershell
 $env:OPENAI_API_KEY=""
@@ -150,13 +150,13 @@ Exemplo de resposta:
 
 Status esperados:
 
-- Criacao: `201`
+- Criação: `201`
 - Leitura/listagem: `200`
-- Exclusao: `204`
-- Nao encontrado: `404`
-- JSON invalido: `400`
+- Exclusão: `204`
+- Não encontrado: `404`
+- JSON inválido: `400`
 
-Exemplo de criacao:
+Exemplo de criação:
 
 ```bash
 curl -X POST http://localhost:8080/tasks \
@@ -170,12 +170,12 @@ Exemplo de listagem:
 curl http://localhost:8080/tasks
 ```
 
-## Uso da IA na Priorizacao
+## Uso da IA na Priorização
 
 `PriorityAdvisor` opera em 2 modos:
 
-1. Heuristica local (sempre disponivel)
-2. LLM opcional (quando `OPENAI_API_KEY` esta configurada)
+1. Heurística local (sempre disponivel)
+2. LLM opcional (quando `OPENAI_API_KEY` está configurada)
 
 ### Contrato esperado do LLM
 
@@ -187,7 +187,7 @@ Resposta de conteudo JSON com:
 
 ### Fallback Seguro
 
-Se a chamada externa falhar, a API nao quebra o CRUD e aplica heuristica local nos casos:
+Se a chamada externa falhar, a API não quebra o CRUD e aplica heurística local nos casos:
 
 - timeout
 - HTTP nao-2xx
@@ -195,23 +195,23 @@ Se a chamada externa falhar, a API nao quebra o CRUD e aplica heuristica local n
 - `choices` vazio
 - prioridade fora do contrato
 
-### Exemplos de Heuristica
+### Exemplos de Heurística
 
 - `"incidente em producao"` -> tende a `critic`
 - `"urgente para cliente"` -> tende a `high`
 - `"melhoria de texto"` -> tende a `medium`
 - `"item opcional de backlog"` -> tende a `low`
 
-### Custo e Latencia
+### Custo e Latência
 
-- Heuristica local: custo externo zero, latencia minima
-- LLM: maior latencia/custo por chamada; recomendado quando precisa de contexto semantico adicional
+- Heurística local: custo externo zero, latência mínima
+- LLM: maior latência/custo por chamada; recomendado quando precisa de contexto semântico adicional
 
-### Seguranca
+### Segurança
 
 - Nunca versionar `OPENAI_API_KEY`
 - Use `.env` local
-- Em ausencia de credencial, comportamento padrao continua funcional
+- Em ausência de credencial, comportamento padrão continua funcional
 
 ## Testes
 
@@ -227,20 +227,20 @@ Ou:
 go test ./...
 ```
 
-Cobertura atual inclui cenarios de:
+Cobertura atual inclui cenários de:
 
 - rotas (`2xx`, `4xx`)
-- servico (CRUD + casos de erro)
-- repositorio (ordenacao e atualizacao)
-- priority advisor (heuristica, sucesso LLM e fallback)
+- serviço (CRUD + casos de erro)
+- repositório (ordenação e atualização)
+- priority advisor (heurística, sucesso LLM e fallback)
 
-## Limitacoes do MVP
+## Limitações do MVP
 
-- Persistencia apenas em memoria (sem dados apos restart)
-- Sem autenticacao/autorizacao
-- Sem migracoes de banco
-- Sem observabilidade completa (metricas/tracing)
+- Persistência apenas em memória (sem dados apos restart)
+- Sem autenticação/autorização
+- Sem migrações de banco
+- Sem observabilidade completa (métricas/tracing)
 
-## Licenca
+## Licença
 
 Este projeto esta licenciado sob a MIT License. Veja o arquivo `LICENSE` para detalhes.
