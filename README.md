@@ -243,4 +243,4 @@ Cobertura atual inclui cenarios de:
 
 ## Licenca
 
-Definir conforme politica do projeto.
+Este projeto esta licenciado sob a MIT License. Veja o arquivo `LICENSE` para detalhes.
