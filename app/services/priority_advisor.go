@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -34,6 +35,9 @@ type DefaultPriorityAdvisor struct {
 // NewPriorityAdvisor creates a fail-safe priority advisor.
 func NewPriorityAdvisor() *DefaultPriorityAdvisor {
 	apiKey := strings.TrimSpace(os.Getenv("OPENAI_API_KEY"))
+	if runningUnderGoTest() && strings.TrimSpace(os.Getenv("PRIORITY_ADVISOR_ENABLE_LLM_IN_TESTS")) != "1" {
+		apiKey = ""
+	}
 	baseURL := strings.TrimSpace(os.Getenv("OPENAI_BASE_URL"))
 	if baseURL == "" {
 		baseURL = defaultOpenAIBaseURL
@@ -68,6 +72,11 @@ func NewPriorityAdvisor() *DefaultPriorityAdvisor {
 	}
 
 	return advisor
+}
+
+func runningUnderGoTest() bool {
+	bin := strings.ToLower(filepath.Base(os.Args[0]))
+	return strings.HasSuffix(bin, ".test") || strings.HasSuffix(bin, ".test.exe")
 }
 
 // SuggestPriority returns a safe priority suggestion.
@@ -112,7 +121,7 @@ func (a *DefaultPriorityAdvisor) suggestWithLLM(title, description string) (mode
 					"Retorne apenas JSON no formato {\"priority\":\"low|medium|high|critic\"}.",
 			},
 			{
-				"role": "user",
+				"role":    "user",
 				"content": fmt.Sprintf("title: %s\ndescription: %s", strings.TrimSpace(title), strings.TrimSpace(description)),
 			},
 		},

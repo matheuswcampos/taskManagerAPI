@@ -63,6 +63,7 @@ func TestPriorityAdvisor_FallbackWhenExternalCallFails(t *testing.T) {
 	defer server.Close()
 
 	t.Setenv("OPENAI_API_KEY", "test-key")
+	t.Setenv("PRIORITY_ADVISOR_ENABLE_LLM_IN_TESTS", "1")
 	t.Setenv("OPENAI_BASE_URL", server.URL)
 	t.Setenv("OPENAI_MODEL", "gpt-4.1-mini")
 
@@ -90,6 +91,7 @@ func TestPriorityAdvisor_UsesLLMWhenValidResponse(t *testing.T) {
 	defer server.Close()
 
 	t.Setenv("OPENAI_API_KEY", "test-key")
+	t.Setenv("PRIORITY_ADVISOR_ENABLE_LLM_IN_TESTS", "1")
 	t.Setenv("OPENAI_BASE_URL", server.URL)
 	t.Setenv("OPENAI_MODEL", "gpt-4.1-mini")
 
@@ -112,6 +114,7 @@ func TestPriorityAdvisor_FallbackWhenLLMReturnsInvalidJSON(t *testing.T) {
 	defer server.Close()
 
 	t.Setenv("OPENAI_API_KEY", "test-key")
+	t.Setenv("PRIORITY_ADVISOR_ENABLE_LLM_IN_TESTS", "1")
 	t.Setenv("OPENAI_BASE_URL", server.URL)
 	t.Setenv("OPENAI_MODEL", "gpt-4.1-mini")
 
@@ -133,6 +136,7 @@ func TestPriorityAdvisor_FallbackWhenLLMReturnsEmptyChoices(t *testing.T) {
 	defer server.Close()
 
 	t.Setenv("OPENAI_API_KEY", "test-key")
+	t.Setenv("PRIORITY_ADVISOR_ENABLE_LLM_IN_TESTS", "1")
 	t.Setenv("OPENAI_BASE_URL", server.URL)
 	t.Setenv("OPENAI_MODEL", "gpt-4.1-mini")
 
@@ -154,6 +158,7 @@ func TestPriorityAdvisor_FallbackWhenLLMReturnsInvalidPriority(t *testing.T) {
 	defer server.Close()
 
 	t.Setenv("OPENAI_API_KEY", "test-key")
+	t.Setenv("PRIORITY_ADVISOR_ENABLE_LLM_IN_TESTS", "1")
 	t.Setenv("OPENAI_BASE_URL", server.URL)
 	t.Setenv("OPENAI_MODEL", "gpt-4.1-mini")
 

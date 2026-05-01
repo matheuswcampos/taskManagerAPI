@@ -234,6 +234,26 @@ Cobertura atual inclui cenários de:
 - repositório (ordenação e atualização)
 - priority advisor (heurística, sucesso LLM e fallback)
 
+Observação de execução:
+
+- `go test ./...` roda sem depender de chamadas reais ao provedor LLM.
+- Durante testes, o `PriorityAdvisor` usa heurística por padrão.
+
+### Troubleshooting (Windows)
+
+Se `go test ./...` falhar com erro de permissão no cache (ex.: `Access is denied` em `AppData\Local\go-build`), configure o cache e GOPATH uma vez:
+
+```powershell
+go env -w GOCACHE="$env:USERPROFILE\\go-build-cache"
+go env -w GOPATH="$env:USERPROFILE\\go"
+```
+
+Depois disso, execute normalmente:
+
+```powershell
+go test ./...
+```
+
 ## Limitações do MVP
 
 - Persistência apenas em memória (sem dados apos restart)
