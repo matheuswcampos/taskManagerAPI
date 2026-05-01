@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -50,7 +51,7 @@ func NewPriorityAdvisor() *DefaultPriorityAdvisor {
 		}
 	}
 
-	return &DefaultPriorityAdvisor{
+	advisor := &DefaultPriorityAdvisor{
 		apiKey:  apiKey,
 		baseURL: strings.TrimRight(baseURL, "/"),
 		model:   model,
@@ -59,6 +60,14 @@ func NewPriorityAdvisor() *DefaultPriorityAdvisor {
 			Timeout: timeout,
 		},
 	}
+
+	if strings.TrimSpace(apiKey) == "" {
+		log.Printf("[priority-advisor] mode=heuristic-only model=%s timeout=%s", advisor.model, advisor.timeout)
+	} else {
+		log.Printf("[priority-advisor] mode=llm-enabled model=%s base_url=%s timeout=%s", advisor.model, advisor.baseURL, advisor.timeout)
+	}
+
+	return advisor
 }
 
 // SuggestPriority returns a safe priority suggestion.
@@ -67,23 +76,28 @@ func (a *DefaultPriorityAdvisor) SuggestPriority(title, description string) (mod
 	fallback := heuristicPriority(title, description)
 
 	if a == nil || strings.TrimSpace(a.apiKey) == "" {
+		log.Printf("[priority-advisor] source=heuristic reason=no_api_key priority=%s", fallback)
 		return fallback, nil
 	}
 
 	priority, err := a.suggestWithLLM(title, description)
 	if err != nil {
+		log.Printf("[priority-advisor] source=heuristic reason=llm_error err=%v fallback_priority=%s", err, fallback)
 		return fallback, nil
 	}
 
 	if !isValidPriority(priority) {
+		log.Printf("[priority-advisor] source=heuristic reason=invalid_llm_priority llm_priority=%q fallback_priority=%s", priority, fallback)
 		return fallback, nil
 	}
 
+	log.Printf("[priority-advisor] source=llm priority=%s", priority)
 	return priority, nil
 }
 
 func (a *DefaultPriorityAdvisor) suggestWithLLM(title, description string) (models.TaskPriority, error) {
 	endpoint := a.baseURL + "/chat/completions"
+	log.Printf("[priority-advisor] llm_request endpoint=%s model=%s", endpoint, a.model)
 
 	payload := map[string]any{
 		"model":       a.model,
@@ -127,6 +141,7 @@ func (a *DefaultPriorityAdvisor) suggestWithLLM(title, description string) (mode
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		log.Printf("[priority-advisor] llm_response status=%d", resp.StatusCode)
 		return "", fmt.Errorf("openai status: %d", resp.StatusCode)
 	}
 
@@ -162,6 +177,7 @@ func (a *DefaultPriorityAdvisor) suggestWithLLM(title, description string) (mode
 		return "", errors.New("invalid priority")
 	}
 
+	log.Printf("[priority-advisor] llm_response status=%d priority=%s", resp.StatusCode, priority)
 	return priority, nil
 }
 
@@ -202,7 +218,7 @@ func heuristicPriority(title, description string) models.TaskPriority {
 	switch {
 	case score >= 6:
 		return models.PriorityCritic
-	case score >= 3:
+	case score >= 2:
 		return models.PriorityHigh
 	case score >= 1:
 		return models.PriorityMedium

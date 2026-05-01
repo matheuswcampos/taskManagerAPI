@@ -41,6 +41,8 @@ tests/
 ```powershell
 git clone <url-do-repositorio>
 cd "Labotatorio Projeto"
+copy .env.example .env
+.\activate-go-env.ps1
 make install
 make run
 ```
@@ -59,8 +61,8 @@ Arquivo recomendado: `.env` (baseado em `.env.example`).
 Importante:
 
 - A aplicacao le variaveis do ambiente do processo (`os.Getenv`).
-- O arquivo `.env` **nao e carregado automaticamente**.
-- Voce precisa exportar/setar as variaveis antes de executar `make run`/`go run ./app`.
+- O script `.\activate-go-env.ps1` continua necessario: ele prepara cache local do Go e carrega o `.env` para a sessao atual.
+- O `.env` e fonte de configuracao local; o script apenas exporta essas variaveis para o processo.
 
 Variaveis:
 
@@ -74,6 +76,17 @@ Observacao:
 - Sem `OPENAI_API_KEY`, a API funciona normalmente usando apenas heuristica local.
 
 ### Como apontar env (PowerShell)
+
+Fluxo recomendado:
+
+```powershell
+copy .env.example .env
+.\activate-go-env.ps1
+```
+
+Depois ajuste os valores no `.env` conforme necessidade.
+
+Alternativa sem script (manual na sessao):
 
 Sem LLM (somente heuristica local):
 
