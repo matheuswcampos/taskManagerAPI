@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -78,5 +79,90 @@ func TestPriorityAdvisor_FallbackWhenExternalCallFails(t *testing.T) {
 	// External call fails, so advisor must return local heuristic.
 	if got != models.PriorityHigh {
 		t.Fatalf("expected fallback priority %q, got %q", models.PriorityHigh, got)
+	}
+}
+
+func TestPriorityAdvisor_UsesLLMWhenValidResponse(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprint(w, `{"choices":[{"message":{"content":"{\"priority\":\"critic\"}"}}]}`)
+	}))
+	defer server.Close()
+
+	t.Setenv("OPENAI_API_KEY", "test-key")
+	t.Setenv("OPENAI_BASE_URL", server.URL)
+	t.Setenv("OPENAI_MODEL", "gpt-4.1-mini")
+
+	advisor := services.NewPriorityAdvisor()
+
+	got, err := advisor.SuggestPriority("titulo neutro", "descricao neutra")
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	if got != models.PriorityCritic {
+		t.Fatalf("expected llm priority %q, got %q", models.PriorityCritic, got)
+	}
+}
+
+func TestPriorityAdvisor_FallbackWhenLLMReturnsInvalidJSON(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprint(w, `{"choices":[{"message":{"content":"not-a-json"}}]}`)
+	}))
+	defer server.Close()
+
+	t.Setenv("OPENAI_API_KEY", "test-key")
+	t.Setenv("OPENAI_BASE_URL", server.URL)
+	t.Setenv("OPENAI_MODEL", "gpt-4.1-mini")
+
+	advisor := services.NewPriorityAdvisor()
+	got, err := advisor.SuggestPriority("Urgente para cliente", "Solicitacao importante para entrega")
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	if got != models.PriorityHigh {
+		t.Fatalf("expected heuristic fallback %q, got %q", models.PriorityHigh, got)
+	}
+}
+
+func TestPriorityAdvisor_FallbackWhenLLMReturnsEmptyChoices(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprint(w, `{"choices":[]}`)
+	}))
+	defer server.Close()
+
+	t.Setenv("OPENAI_API_KEY", "test-key")
+	t.Setenv("OPENAI_BASE_URL", server.URL)
+	t.Setenv("OPENAI_MODEL", "gpt-4.1-mini")
+
+	advisor := services.NewPriorityAdvisor()
+	got, err := advisor.SuggestPriority("Urgente para cliente", "Solicitacao importante para entrega")
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	if got != models.PriorityHigh {
+		t.Fatalf("expected heuristic fallback %q, got %q", models.PriorityHigh, got)
+	}
+}
+
+func TestPriorityAdvisor_FallbackWhenLLMReturnsInvalidPriority(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprint(w, `{"choices":[{"message":{"content":"{\"priority\":\"p0\"}"}}]}`)
+	}))
+	defer server.Close()
+
+	t.Setenv("OPENAI_API_KEY", "test-key")
+	t.Setenv("OPENAI_BASE_URL", server.URL)
+	t.Setenv("OPENAI_MODEL", "gpt-4.1-mini")
+
+	advisor := services.NewPriorityAdvisor()
+	got, err := advisor.SuggestPriority("Urgente para cliente", "Solicitacao importante para entrega")
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	if got != models.PriorityHigh {
+		t.Fatalf("expected heuristic fallback %q, got %q", models.PriorityHigh, got)
 	}
 }

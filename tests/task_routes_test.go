@@ -112,3 +112,125 @@ func TestTaskRoutes_GetByIDReturns404WhenNotFound(t *testing.T) {
 	}
 }
 
+func TestTaskRoutes_GetByIDReturns200WhenFound(t *testing.T) {
+	app := newTaskAPI()
+
+	createBody := []byte(`{"title":"Tarefa para buscar por ID"}`)
+	createReq := httptest.NewRequest(http.MethodPost, "/tasks", bytes.NewReader(createBody))
+	createReq.Header.Set("Content-Type", "application/json")
+	createResp, err := app.Test(createReq)
+	if err != nil {
+		t.Fatalf("create request failed: %v", err)
+	}
+	if createResp.StatusCode != http.StatusCreated {
+		t.Fatalf("expected create status %d, got %d", http.StatusCreated, createResp.StatusCode)
+	}
+
+	var created struct {
+		ID string `json:"id"`
+	}
+	if err := json.NewDecoder(createResp.Body).Decode(&created); err != nil {
+		t.Fatalf("decode create response: %v", err)
+	}
+
+	getReq := httptest.NewRequest(http.MethodGet, "/tasks/"+created.ID, nil)
+	getResp, err := app.Test(getReq)
+	if err != nil {
+		t.Fatalf("get request failed: %v", err)
+	}
+	if getResp.StatusCode != http.StatusOK {
+		t.Fatalf("expected status %d, got %d", http.StatusOK, getResp.StatusCode)
+	}
+}
+
+func TestTaskRoutes_UpdateReturns200(t *testing.T) {
+	app := newTaskAPI()
+
+	createBody := []byte(`{"title":"Tarefa para atualizar"}`)
+	createReq := httptest.NewRequest(http.MethodPost, "/tasks", bytes.NewReader(createBody))
+	createReq.Header.Set("Content-Type", "application/json")
+	createResp, err := app.Test(createReq)
+	if err != nil {
+		t.Fatalf("create request failed: %v", err)
+	}
+	if createResp.StatusCode != http.StatusCreated {
+		t.Fatalf("expected create status %d, got %d", http.StatusCreated, createResp.StatusCode)
+	}
+
+	var created struct {
+		ID string `json:"id"`
+	}
+	if err := json.NewDecoder(createResp.Body).Decode(&created); err != nil {
+		t.Fatalf("decode create response: %v", err)
+	}
+
+	updateBody := []byte(`{"title":"Titulo atualizado","status":"doing"}`)
+	updateReq := httptest.NewRequest(http.MethodPut, "/tasks/"+created.ID, bytes.NewReader(updateBody))
+	updateReq.Header.Set("Content-Type", "application/json")
+	updateResp, err := app.Test(updateReq)
+	if err != nil {
+		t.Fatalf("update request failed: %v", err)
+	}
+	if updateResp.StatusCode != http.StatusOK {
+		t.Fatalf("expected status %d, got %d", http.StatusOK, updateResp.StatusCode)
+	}
+}
+
+func TestTaskRoutes_CreateReturns400OnInvalidJSON(t *testing.T) {
+	app := newTaskAPI()
+
+	req := httptest.NewRequest(http.MethodPost, "/tasks", bytes.NewReader([]byte(`{"title":`)))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := app.Test(req)
+	if err != nil {
+		t.Fatalf("request failed: %v", err)
+	}
+	if resp.StatusCode != http.StatusBadRequest {
+		t.Fatalf("expected status %d, got %d", http.StatusBadRequest, resp.StatusCode)
+	}
+}
+
+func TestTaskRoutes_UpdateReturns400OnInvalidJSON(t *testing.T) {
+	app := newTaskAPI()
+
+	createBody := []byte(`{"title":"Tarefa base"}`)
+	createReq := httptest.NewRequest(http.MethodPost, "/tasks", bytes.NewReader(createBody))
+	createReq.Header.Set("Content-Type", "application/json")
+	createResp, err := app.Test(createReq)
+	if err != nil {
+		t.Fatalf("create request failed: %v", err)
+	}
+	if createResp.StatusCode != http.StatusCreated {
+		t.Fatalf("expected create status %d, got %d", http.StatusCreated, createResp.StatusCode)
+	}
+
+	var created struct {
+		ID string `json:"id"`
+	}
+	if err := json.NewDecoder(createResp.Body).Decode(&created); err != nil {
+		t.Fatalf("decode create response: %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodPut, "/tasks/"+created.ID, bytes.NewReader([]byte(`{"status":`)))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := app.Test(req)
+	if err != nil {
+		t.Fatalf("request failed: %v", err)
+	}
+	if resp.StatusCode != http.StatusBadRequest {
+		t.Fatalf("expected status %d, got %d", http.StatusBadRequest, resp.StatusCode)
+	}
+}
+
+func TestTaskRoutes_DeleteReturns404WhenNotFound(t *testing.T) {
+	app := newTaskAPI()
+
+	req := httptest.NewRequest(http.MethodDelete, "/tasks/id-inexistente", nil)
+	resp, err := app.Test(req)
+	if err != nil {
+		t.Fatalf("request failed: %v", err)
+	}
+	if resp.StatusCode != http.StatusNotFound {
+		t.Fatalf("expected status %d, got %d", http.StatusNotFound, resp.StatusCode)
+	}
+}

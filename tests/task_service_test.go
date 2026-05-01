@@ -163,3 +163,45 @@ func TestTaskService_ReturnsNotFoundForUnknownID(t *testing.T) {
 		}
 	})
 }
+
+func TestTaskService_CreateKeepsPriorityEmptyWhenAdvisorFails(t *testing.T) {
+	repo := repositories.NewTaskRepository()
+	advisor := &fakeAdvisor{err: errors.New("advisor unavailable")}
+	svc := services.NewTaskService(repo, advisor)
+
+	created, err := svc.Create(models.TaskCreate{
+		Title:       "Urgente para cliente",
+		Description: "Erro em produção",
+	})
+	if err != nil {
+		t.Fatalf("expected no error on create, got %v", err)
+	}
+	if created.Priority != "" {
+		t.Fatalf("expected empty priority when advisor fails, got %q", created.Priority)
+	}
+}
+
+func TestTaskService_UpdateKeepsPriorityWhenExplicitlyProvided(t *testing.T) {
+	svc := newTaskServiceFixture()
+
+	created, err := svc.Create(models.TaskCreate{
+		Title:    "Tarefa original",
+		Priority: models.PriorityLow,
+	})
+	if err != nil {
+		t.Fatalf("create task: %v", err)
+	}
+
+	newTitle := "Novo titulo"
+	explicitPriority := models.PriorityCritic
+	updated, err := svc.Update(created.ID, models.TaskUpdate{
+		Title:    &newTitle,
+		Priority: &explicitPriority,
+	})
+	if err != nil {
+		t.Fatalf("update task: %v", err)
+	}
+	if updated.Priority != models.PriorityCritic {
+		t.Fatalf("expected explicit priority %q, got %q", models.PriorityCritic, updated.Priority)
+	}
+}
