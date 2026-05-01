@@ -1,23 +1,19 @@
 # Micro-API de Tarefas com Priorizacao Assistida por IA
 
-MVP de uma API REST em Go para gestão de tarefas com sugestão de prioridade baseada em heurística local e opcionalmente em LLM.
+API REST em Go (Fiber) para gestao de tarefas com sugestao de prioridade por heuristica local e integracao opcional com LLM.
 
 ## Objetivo
 
-Entregar uma base enxuta para:
-
-- criar, listar, atualizar e excluir tarefas
-- padronizar estados e niveis de prioridade
-- sugerir prioridade automaticamente com fallback seguro
-- evoluir para persistência e operação em ambiente de produção
+- Criar, listar, atualizar e excluir tarefas
+- Padronizar status e niveis de prioridade
+- Sugerir prioridade automaticamente com fallback seguro
 
 ## Stack
 
-- Go `1.25+`
+- Go `1.25.x`
 - Fiber `v2`
 - Arquitetura em camadas: `api -> services -> repositories`
-- Persistência atual em memória (map protegido por mutex)
-- Testes com `go test` (unitários e rotas)
+- Persistencia em memoria (map com mutex)
 
 ## Estrutura do Projeto
 
@@ -25,136 +21,88 @@ Entregar uma base enxuta para:
 app/
   api/                # Handlers e rotas HTTP
   models/             # Entidades e DTOs
-  repositories/       # Persistência em memória
-  services/           # Regras de negócio e PriorityAdvisor
-  main.go             # Bootstrap HTTP atual (healthcheck)
+  repositories/       # Persistencia em memoria
+  services/           # Regras de negocio + PriorityAdvisor
+  main.go             # Bootstrap HTTP
 docs/
-  arquitetura-componentes.mmd
-  backlog.md
-  escopo-mvp.md
 tests/
-  *_test.go
 ```
 
-## Instalação
+## Reproducao Rapida (Maquina Limpa)
 
 ### Pre-requisitos
 
-- Go instalado (`go version`)
+- Go `1.25.x` instalado (`go version`)
 - Git
 - PowerShell (Windows)
 
-### Passos
+### Passo a passo
 
 ```powershell
 git clone <url-do-repositorio>
 cd "Labotatorio Projeto"
-go mod download
+copy .env.example .env
+make install
+make run
 ```
 
-Opcional (helper local do projeto):
-
-```powershell
-.\activate-go-env.ps1
-```
-
-## Configuração
-
-A aplicação usa variáveis de ambiente para o módulo de priorização por IA:
-
-- `OPENAI_API_KEY`: chave de API (opcional)
-- `OPENAI_BASE_URL`: endpoint base (padrao: `https://api.openai.com/v1`)
-- `OPENAI_MODEL`: modelo (padrão: `gpt-4.1-mini`)
-- `PRIORITY_ADVISOR_TIMEOUT`: timeout HTTP (padrão: `4s`)
-
-Exemplo (PowerShell):
-
-```powershell
-$env:OPENAI_API_KEY="sua_chave"
-$env:OPENAI_MODEL="gpt-4.1-mini"
-$env:PRIORITY_ADVISOR_TIMEOUT="4s"
-```
-
-## Execução
-
-Subir a API:
-
-```powershell
-go run ./app
-```
-
-Endpoint disponivel no bootstrap atual:
-
-- `GET /health` -> `200 OK`
-
-Exemplo:
+Em outro terminal:
 
 ```powershell
 curl http://localhost:8080/health
+curl http://localhost:8080/tasks
 ```
 
-Resposta esperada:
+## Configuracao
+
+Arquivo recomendado: `.env` (baseado em `.env.example`).
+
+Variaveis:
+
+- `OPENAI_API_KEY`: chave da API OpenAI (opcional)
+- `OPENAI_BASE_URL`: default `https://api.openai.com/v1`
+- `OPENAI_MODEL`: default `gpt-4.1-mini`
+- `PRIORITY_ADVISOR_TIMEOUT`: default `4s`
+
+Observacao:
+
+- Sem `OPENAI_API_KEY`, a API funciona normalmente usando apenas heuristica local.
+
+## Comandos de Desenvolvimento
+
+```powershell
+make install
+make run
+make test
+```
+
+Equivalentes diretos:
+
+```powershell
+go mod download
+go run ./app
+go test ./...
+```
+
+## Endpoints
+
+Base URL local: `http://localhost:8080`
+
+### Healthcheck
+
+- `GET /health`
+- `200 OK`
+
+Exemplo de resposta:
 
 ```json
 {
   "status": "ok",
-  "timestamp": "2026-04-30T12:00:00Z"
+  "timestamp": "2026-05-01T00:00:00Z"
 }
 ```
 
-## Testes
-
-Executar toda a suite:
-
-```powershell
-go test ./...
-```
-
-Cobertura atual de testes inclui:
-
-- `TaskService` (CRUD + casos de erro)
-- `PriorityAdvisor` (heurística e fallback)
-- rotas `/tasks` com validação de status (`201`, `200`, `204`, `404`)
-
-## Arquitetura
-
-Separação principal:
-
-- `app/api`: traduz HTTP <-> DTO
-- `app/services`: aplica regras de negócio
-- `app/repositories`: abstrai armazenamento
-- `PriorityAdvisor`: encapsula lógica de sugestão de prioridade
-
-Fluxo de alto nivel:
-
-1. Cliente envia requisição HTTP.
-2. Handler faz parse e chama `TaskService`.
-3. `TaskService` aplica regras (defaults, sugestão de prioridade).
-4. Repositório persiste/consulta tarefa.
-5. Handler retorna resposta JSON.
-
-Diagrama Mermaid em: `docs/arquitetura-componentes.mmd`.
-
-## Uso da IA na Priorizacao
-
-O componente `PriorityAdvisor` opera em dois modos:
-
-1. **Heurística local (sempre disponivel)**
-- analisa termos de urgência/impacto
-- classifica em `low`, `medium`, `high` ou `critic`
-
-2. **LLM opcional (quando `OPENAI_API_KEY` existe)**
-- envia contexto (`title`, `description`) para o modelo configurado
-- espera JSON com campo `priority`
-- valida retorno e aplica somente valores permitidos
-
-Fallback de segurança:
-
-- se chamada externa falhar (timeout, erro HTTP, payload invalido), retorna heurística local sem quebrar o fluxo do CRUD.
-
-## Endpoints de Tarefas
-
-As rotas CRUD estão implementadas em `app/api/task_routes.go`:
+### Tasks
 
 - `POST /tasks`
 - `GET /tasks`
@@ -162,33 +110,99 @@ As rotas CRUD estão implementadas em `app/api/task_routes.go`:
 - `PUT /tasks/:id`
 - `DELETE /tasks/:id`
 
-Status esperados no contrato atual:
+Status esperados:
 
-- criação: `201`
-- leitura/listagem: `200`
-- exclusão: `204`
-- não encontrado: `404`
+- Criacao: `201`
+- Leitura/listagem: `200`
+- Exclusao: `204`
+- Nao encontrado: `404`
+- JSON invalido: `400`
 
-Observação: o `main.go` atual registra apenas `/health`. O registro das rotas de tarefas já existe e pode ser integrado no bootstrap sem alterar as camadas de dominio.
+Exemplo de criacao:
 
-## Limitações do MVP
+```bash
+curl -X POST http://localhost:8080/tasks \
+  -H "Content-Type: application/json" \
+  -d "{\"title\":\"Corrigir bug de login\",\"description\":\"Erro 500 em producao\"}"
+```
 
-- armazenamento em memória (sem persistencia entre reinicios)
-- sem autenticação/autorização
-- sem migrações de banco
-- sem validação estruturada de payload com retorno detalhado por campo
-- sem observabilidade completa (métricas/tracing)
-- bootstrap atual ainda não expõe `/tasks` em runtime por padrão
+Exemplo de listagem:
 
-## Próximos Passos
+```bash
+curl http://localhost:8080/tasks
+```
 
-1. Integrar `TaskRepository` e `TaskService` no `main.go` e publicar `/tasks` no runtime principal.
-2. Adicionar validação de entrada com mensagens consistentes por campo.
-3. Introduzir persistência real (PostgreSQL + migracoes).
-4. Incluir testes de integração com banco e cenários de concorrência.
-5. Adicionar autenticação simples e versionamento de API (`/v1`).
-6. Evoluir observabilidade (logs estruturados, metricas, tracing).
+## Uso da IA na Priorizacao
 
-## Licença
+`PriorityAdvisor` opera em 2 modos:
+
+1. Heuristica local (sempre disponivel)
+2. LLM opcional (quando `OPENAI_API_KEY` esta configurada)
+
+### Contrato esperado do LLM
+
+Resposta de conteudo JSON com:
+
+```json
+{"priority":"low|medium|high|critic"}
+```
+
+### Fallback Seguro
+
+Se a chamada externa falhar, a API nao quebra o CRUD e aplica heuristica local nos casos:
+
+- timeout
+- HTTP nao-2xx
+- JSON invalido
+- `choices` vazio
+- prioridade fora do contrato
+
+### Exemplos de Heuristica
+
+- `"incidente em producao"` -> tende a `critic`
+- `"urgente para cliente"` -> tende a `high`
+- `"melhoria de texto"` -> tende a `medium`
+- `"item opcional de backlog"` -> tende a `low`
+
+### Custo e Latencia
+
+- Heuristica local: custo externo zero, latencia minima
+- LLM: maior latencia/custo por chamada; recomendado quando precisa de contexto semantico adicional
+
+### Seguranca
+
+- Nunca versionar `OPENAI_API_KEY`
+- Use `.env` local
+- Em ausencia de credencial, comportamento padrao continua funcional
+
+## Testes
+
+Executar suite:
+
+```powershell
+make test
+```
+
+Ou:
+
+```powershell
+go test ./...
+```
+
+Cobertura atual inclui cenarios de:
+
+- rotas (`2xx`, `4xx`)
+- servico (CRUD + casos de erro)
+- repositorio (ordenacao e atualizacao)
+- priority advisor (heuristica, sucesso LLM e fallback)
+
+## Limitacoes do MVP
+
+- Persistencia apenas em memoria (sem dados apos restart)
+- Sem autenticacao/autorizacao
+- Sem migracoes de banco
+- Sem observabilidade completa (metricas/tracing)
+
+## Licenca
 
 Definir conforme politica do projeto.
