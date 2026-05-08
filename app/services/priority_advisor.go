@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+	"io"
 
 	"task-prioritization-api/app/models"
 )
@@ -111,9 +112,7 @@ func (a *DefaultPriorityAdvisor) suggestWithLLM(title, description string) (mode
 	payload := map[string]any{
 		"model":       a.model,
 		"temperature": 0,
-		"response_format": map[string]string{
-			"type": "json_object",
-		},
+		"stream":      false,
 		"messages": []map[string]string{
 			{
 				"role": "system",
@@ -128,66 +127,62 @@ func (a *DefaultPriorityAdvisor) suggestWithLLM(title, description string) (mode
 	}
 
 	body, err := json.Marshal(payload)
-	if err != nil {
-		return "", err
-	}
+    if err != nil {
+        return "", err
+    }
 
-	ctx, cancel := context.WithTimeout(context.Background(), a.timeout)
-	defer cancel()
+    ctx, cancel := context.WithTimeout(context.Background(), a.timeout)
+    defer cancel()
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(body))
-	if err != nil {
-		return "", err
-	}
+    req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(body))
+    if err != nil {
+        return "", err
+    }
 
-	req.Header.Set("Authorization", "Bearer "+a.apiKey)
-	req.Header.Set("Content-Type", "application/json")
+    req.Header.Set("Authorization", "Bearer "+a.apiKey)
+    req.Header.Set("Content-Type", "application/json")
 
-	resp, err := a.client.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
+    resp, err := a.client.Do(req)
+    if err != nil {
+        return "", err
+    }
+    defer resp.Body.Close()
 
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		log.Printf("[priority-advisor] llm_response status=%d", resp.StatusCode)
-		return "", fmt.Errorf("openai status: %d", resp.StatusCode)
-	}
+    bodyBytes, err := io.ReadAll(resp.Body)
+    if err != nil {
+        return "", err
+    }
 
-	var llmResp struct {
-		Choices []struct {
-			Message struct {
-				Content string `json:"content"`
-			} `json:"message"`
-		} `json:"choices"`
-	}
+    if resp.StatusCode != http.StatusOK {
+        return "", fmt.Errorf("llm api error: status=%d", resp.StatusCode)
+    }
 
-	if err := json.NewDecoder(resp.Body).Decode(&llmResp); err != nil {
-		return "", err
-	}
-	if len(llmResp.Choices) == 0 {
-		return "", errors.New("empty choices")
-	}
+    var llmResp struct {
+        Choices []struct {
+            Message struct {
+                Content string `json:"content"`
+            } `json:"message"`
+        } `json:"choices"`
+    }
 
-	content := strings.TrimSpace(llmResp.Choices[0].Message.Content)
-	if content == "" {
-		return "", errors.New("empty content")
-	}
+    if err := json.Unmarshal(bodyBytes, &llmResp); err != nil {
+        return "", err
+    }
 
-	var out struct {
-		Priority string `json:"priority"`
-	}
-	if err := json.Unmarshal([]byte(content), &out); err != nil {
-		return "", err
-	}
+    if len(llmResp.Choices) == 0 {
+        return "", errors.New("empty choices")
+    }
 
-	priority := models.TaskPriority(strings.ToLower(strings.TrimSpace(out.Priority)))
-	if !isValidPriority(priority) {
-		return "", errors.New("invalid priority")
-	}
+    content := sanitizeJSONResponse(llmResp.Choices[0].Message.Content)
 
-	log.Printf("[priority-advisor] llm_response status=%d priority=%s", resp.StatusCode, priority)
-	return priority, nil
+    var out struct {
+        Priority string `json:"priority"`
+    }
+    if err := json.Unmarshal([]byte(content), &out); err != nil {
+        return "", err
+    }
+
+    return normalizePriority(out.Priority), nil
 }
 
 func heuristicPriority(title, description string) models.TaskPriority {
@@ -243,4 +238,19 @@ func isValidPriority(p models.TaskPriority) bool {
 	default:
 		return false
 	}
+}
+
+func sanitizeJSONResponse(s string) string {
+    s = strings.TrimSpace(s)
+    s = strings.TrimPrefix(s, "```json")
+    s = strings.TrimSuffix(s, "```")
+    return strings.TrimSpace(s)
+}
+
+func normalizePriority(p string) models.TaskPriority {
+    p = strings.ToLower(strings.TrimSpace(p))
+    if p == "critical" {
+        return models.PriorityCritic
+    }
+    return models.TaskPriority(p)
 }
