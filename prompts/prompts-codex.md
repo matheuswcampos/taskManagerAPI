@@ -225,3 +225,75 @@ Com base no codigo e nos testes atuais, gere um checklist com:
 3) Melhorias prioritarias para a proxima release
 Resposta em bullets curtos.
 ```
+
+# Capitulo 6 - Prompts de Gerenciamento de Riscos e Comunicacao
+## Prompt 1 - Identificacao de Riscos
+```
+Persona: Voce atua como um especialista em gerenciamento de riscos em projetos de software, com experiencia na identificacao de riscos tecnicos, organizacionais e de processo, especialmente em contextos de alta incerteza.
+Tarefa: Identificar possiveis riscos associados ao projeto, com base nas informacoes fornecidas, considerando fatores que podem impactar o andamento, a qualidade ou os resultados do projeto.
+Contexto: Considere que:
+1) Trata-se de um projeto de desenvolvimento de software;
+2) Os requisitos estão em evolucao, podendo sofrer mudancas ao longo do tempo;
+3) A equipe e distribuida, podendo envolver desafios de comunicacao e coordenacao;
+A analise deve se limitar as informacoes fornecidas e suas implicacoes diretas.
+Saida: Apresente o resultado em formato estruturado, conforme o modelo abaixo:
+Lista de riscos identificados. Para cada risco:
+1) Risco: descricao clara e objetiva;
+2) Descricao: explicacao breve do risco;
+3) Contexto de ocorrencia: situacao ou condicao em que o risco pode se manifestar.
+Restricoes e diretrizes: Nao assumir informacoes que nao foram fornecidas explicitamente; Indicar claramente quando houver incerteza ou necessidade de validacao; Evitar generalizacoes excessivas ou riscos genericos.
+```
+## Prompt 1 - Analise de Riscos
+```
+Persona: Voce atua como um analista de riscos em projetos de software, com experiencia na analise qualitativa de riscos e aplicacao de matrizes de probabilidade e impacto.
+Tarefa: Realizar uma analise dos riscos previamente identificados, descrevendo seus impactos e fatores associados, e posteriormente organiza-los em uma matriz qualitativa de probabilidade vs. impacto, para apoiar a compreensao dos riscos.
+Contexto: Considere que:
+1) Os riscos ja foram previamente identificados;
+2) O projeto esta em contexto de desenvolvimento de software;
+3) As informacoes disponiveis podem variar em nivel de detalhe;
+A analise deve se limitar as informacoes fornecidas e suas implicacoes diretas. Pode considerar o output feito no arquivo identificacao.md.
+Saida: Apresente o resultado em formato estruturado, conforme o modelo abaixo:
+1) Analise estruturada dos riscos. Para cada risco:
+a) Risco: nome ou descricao breve;
+b) Descricao: detalhamento do risco;
+c) Possiveis impactos no projeto: impactos potenciais em prazo, esforco, qualidade ou coordenacao.
+d) Fatores que influenciam a ocorrencia: condicoes, dependencias ou caracteristicas do projeto que aumentam ou reduzem a probabilidade de ocorrencia.
+e) Probabilidade (qualitativa): Baixa / Media / Alta.
+f) Impacto (qualitativo): Baixo / Medio / Alto.
+g) Justificativa da classificacao
+2) Matriz Qualitativa de Riscos
+|Probabilidade\Impacto|Baixo|Medio|Alto|
+|---------------------|-----|-----|----|
+|**Alta**       |   |   |   |
+|**Media**      |   |   |   |
+|**Baixa**      |   |   |   |
+Restricoes e diretrizes: Nao atribuir valores numericos de probabilidade ou impacto; Indicar claramente quando houver incerteza ou necessidade de validacao.
+Saida: Escreva o output num arquivo Markdown nesse diretorio: docs/riscos/analise.md
+```
+## Prompt 3 - Definicao das Estrategias de Resposta
+```
+Persona: Voce atua como um gerente de projetos com experiencia em resposta a riscos, com conhecimento em estrategias classicas de tratamento de riscos em projetos de software, como evitar, mitigar, transferir e aceitar riscos, considerando diferentes contextos e niveis e incerteza.
+Tarefa: Sugerir possiveis estrategias de resposta para os riscos previamente identificados e analisados, explorando alternativas viaveis e suas implicacoes, sem realizar um escolha definitiva.
+Contexto: Considere que:
+1) Os requisitos ja foram identificados e analisados previamente;
+2) O projeto esta em contexto de desenvolvimento de software;
+3) As informacoes disponiveis podem variar em nivel de detalhe;
+4) A analise servira como apoio a tomada de decisao posterior.
+Saida: Apresente o resultado em formato estruturado, conforme o modelo abaixo:
+1) Estrategias Possiveis de Risco. Para cada risco:
+a) Risco: nome ou descricao breve;
+b) Descricao: detalhamento do risco;
+c) Estrategias de resposta possiveis:
+i) Evitar: Descricao de como esssa abordagem poderia ser aplicada ao risco;
+ii) Mitigar: Descricao de como reduzir a probabilidade ou impacto;
+iii) Transferir: Descricao de como o risco poderia ser compartilhado ou transferido;
+iv) Aceitar: Descricao de quando e por que essa aborsagem pode ser considera.
+2) Consideracoes sobre aplicacao das estrategias
+a) Situacoes em que cada tipode estrategia tende a ser mais adequada;
+b) Limitacoes ou trade-offs associados a cada abordagem;
+3) Observacoes gerais:
+a) Dependencia de contexto adicional para tomada de decisao;
+b) Pontos que exigem validacao com stakeholders.
+Restricoes e diretrizes: Indicar claramente as limitacoes das sugestoes apresentadas; Manter a analise em nivel exploratorio e qualitativo.
+Saida: Escreva o output num arquivo Markdown nesse diretorio: docs/riscos/respostas.md
+```
