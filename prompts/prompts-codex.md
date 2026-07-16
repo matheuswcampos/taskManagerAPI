@@ -297,3 +297,13 @@ b) Pontos que exigem validacao com stakeholders.
 Restricoes e diretrizes: Indicar claramente as limitacoes das sugestoes apresentadas; Manter a analise em nivel exploratorio e qualitativo.
 Saida: Escreva o output num arquivo Markdown nesse diretorio: docs/riscos/respostas.md
 ```
+## Prompt 4 - Comunicacao para Stakeholders
+```
+Situacao: Necessidade de comunicar o andamento do projeto para a diretoria, incluindo atrasos e riscos identificados.
+Tarefa: Descricao tecnica do status do projeto, contendo detalhes sobre problemas de integracao, dificuldades tecnicas e ajustes no planejamento. Para isso, pode analisar todos os documentos gerados sobre questoes de risco.
+Saida:
+1) Texto claro e objetivo;
+2) Destaque dos impactos no negocio;
+3) Indicacao de riscos e proximos passos.
+4) Escreva o output num arquivo Markdown nesse diretorio: docs/comunicacao/status-stakeholders.md
+```
