@@ -1,115 +1,108 @@
-# Análise Qualitativa de Riscos
+# Analise Qualitativa de Riscos
 
-Esta análise considera apenas os riscos previamente identificados em `docs/riscos/identificacao.md` e as implicações diretas do contexto informado: projeto de desenvolvimento de software, requisitos em evolução e equipe distribuída. As classificações são qualitativas e devem ser validadas conforme mais informações sobre processo, equipe, governança de requisitos e cadência de comunicação estejam disponíveis.
+Esta analise considera os riscos identificados em `docs/riscos/identificacao.md` e as implicacoes diretas do contexto informado: projeto de software com requisitos em evolucao, equipe distribuida, arquitetura em camadas, persistencia em memoria, priorizacao assistida por IA/LLM opcional e limitacoes explicitas do MVP. As classificacoes sao qualitativas e devem ser revisitadas conforme ambiente de uso, criticidade dos dados e expectativas dos stakeholders.
 
-## 1) Análise estruturada dos riscos
+## 1) Analise estruturada dos riscos
 
-### 1. Mudanças frequentes nos requisitos
+### 1. Evolucao dos requisitos gerar retrabalho e instabilidade de escopo
 
-**Risco:** Mudanças frequentes nos requisitos
+**Probabilidade:** Alta
 
-**Descrição:** Os requisitos podem sofrer alterações ao longo do desenvolvimento, afetando funcionalidades planejadas, em andamento ou já implementadas.
+**Impacto:** Alto
 
-**Possíveis impactos no projeto:** Pode gerar retrabalho, aumento de esforço, alterações no prazo, dificuldade de estabilizar o escopo e necessidade de revisar decisões já tomadas.
+**Justificativa:** A evolucao dos requisitos foi informada como condicao do projeto. Mudancas podem afetar escopo, contrato da API, testes, documentacao e decisoes tecnicas ja tomadas.
 
-**Fatores que influenciam a ocorrência:** A ocorrência tende a aumentar quando os requisitos ainda não estão suficientemente validados ou quando novas necessidades surgem durante o desenvolvimento. A probabilidade pode ser reduzida se houver mecanismos claros de priorização, validação e controle de mudanças, mas essas práticas não foram informadas e precisam ser validadas.
+### 2. Mudancas futuras no contrato da API afetarem consumidores e testes
 
-**Probabilidade (qualitativa):** Alta
+**Probabilidade:** Media
 
-**Impacto (qualitativo):** Alto
+**Impacto:** Alto
 
-**Justificativa da classificação:** A probabilidade foi classificada como alta porque o contexto informa explicitamente que os requisitos estão em evolução. O impacto foi classificado como alto porque mudanças de requisitos podem afetar prazo, esforço, qualidade e escopo, especialmente quando atingem itens já desenvolvidos ou em desenvolvimento.
+**Justificativa:** Existem evolucoes planejadas de contrato, como erro padronizado, filtros, OpenAPI e possivel endpoint dedicado de sugestao. O impacto cresce se houver consumidores integrados antes da estabilizacao desses contratos.
 
-### 2. Dificuldade de alinhamento sobre escopo e prioridades
+### 3. Dependencia operacional da integracao opcional com LLM
 
-**Risco:** Dificuldade de alinhamento sobre escopo e prioridades
+**Probabilidade:** Media
 
-**Descrição:** A evolução dos requisitos pode gerar entendimentos diferentes sobre o que deve ser priorizado, o que está dentro do escopo e quais mudanças devem ser incorporadas.
+**Impacto:** Medio
 
-**Possíveis impactos no projeto:** Pode causar decisões inconsistentes, retrabalho, atraso em definições, conflitos de prioridade e execução de atividades com base em premissas diferentes.
+**Justificativa:** A integracao e opcional e possui fallback, o que reduz impacto sobre o CRUD. Ainda assim, quando habilitada, pode afetar latencia, custo e previsibilidade da priorizacao.
 
-**Fatores que influenciam a ocorrência:** O risco aumenta quando a equipe precisa tomar decisões antes de haver clareza sobre requisitos e prioridades. Também pode aumentar em equipes distribuídas, caso as decisões não sejam comunicadas de forma clara. Há incerteza sobre a existência de um processo formal de priorização, o que requer validação.
+### 4. Fallback por heuristica local produzir priorizacoes inadequadas
 
-**Probabilidade (qualitativa):** média
+**Probabilidade:** Media
 
-**Impacto (qualitativo):** Alto
+**Impacto:** Medio
 
-**Justificativa da classificação:** A probabilidade foi classificada como média porque o risco decorre diretamente da evolução dos requisitos, mas depende de como as decisões de escopo são conduzidas. O impacto foi considerado alto porque desalinhamentos de escopo e prioridade podem afetar prazo, esforço e coordenação da equipe.
+**Justificativa:** A heuristica e deterministica e preserva funcionamento minimo, mas pode nao refletir criterios reais de prioridade da equipe em casos ambiguos.
 
-### 3. Problemas de comunicação em equipe distribuída
+### 5. Perda de dados por persistencia em memoria
 
-**Risco:** Problemas de comunicação em equipe distribuída
+**Probabilidade:** Alta
 
-**Descrição:** A distribuição da equipe pode dificultar a troca de informações, o compartilhamento de contexto e o esclarecimento de dúvidas durante o desenvolvimento.
+**Impacto:** Alto
 
-**Possíveis impactos no projeto:** Pode gerar atrasos na resolução de bloqueios, entendimento incompleto de requisitos, decisões técnicas desalinhadas e redução da coordenação entre os envolvidos.
+**Justificativa:** A persistencia em memoria e caracteristica atual do MVP. O impacto e alto se houver expectativa de uso continuado ou homologacao com dados que devam sobreviver a reinicios.
 
-**Fatores que influenciam a ocorrência:** O risco aumenta quando há dependência frequente entre membros da equipe para esclarecer requisitos, tomar decisões ou integrar atividades. Pode ser reduzido por rotinas de comunicação, registros de decisão e canais bem definidos, mas essas informações não foram fornecidas e precisam ser validadas.
+### 6. Evolucao para banco de dados exigir mudancas tecnicas relevantes
 
-**Probabilidade (qualitativa):** média
+**Probabilidade:** Media
 
-**Impacto (qualitativo):** médio
+**Impacto:** Alto
 
-**Justificativa da classificação:** A probabilidade foi classificada como média porque a equipe distribuída foi informada como uma condição do projeto, mas não há detalhes sobre fusos, ferramentas ou cadência de comunicação. O impacto foi considerado médio porque falhas de comunicação podem afetar coordenação e prazo, embora sua gravidade dependa da intensidade das dependências entre atividades.
+**Justificativa:** A migracao para PostgreSQL esta planejada para etapa futura e pode alterar infraestrutura, testes, tratamento de erro, desempenho e operacao.
 
-### 4. coordenação insuficiente entre atividades da equipe
+### 7. Exposicao da API sem autenticacao ou autorizacao
 
-**Risco:** coordenação insuficiente entre atividades da equipe
+**Probabilidade:** Baixa
 
-**Descrição:** A equipe distribuída pode ter dificuldade para sincronizar atividades, especialmente quando há dependências entre tarefas ou componentes relacionados.
+**Impacto:** Alto
 
-**Possíveis impactos no projeto:** Pode gerar duplicidade de esforço, atrasos por dependências não resolvidas, integração tardia de componentes e inconsistências entre partes do software.
+**Justificativa:** Autenticacao/autorizacao estao fora do escopo atual. A probabilidade e baixa enquanto o uso for controlado, mas o impacto cresce se a API for exposta fora desse limite.
 
-**Fatores que influenciam a ocorrência:** O risco aumenta quando diferentes membros ou subgrupos trabalham em itens relacionados sem alinhamento frequente. A probabilidade e o impacto dependem do nível de interdependência técnica entre as atividades, informação que não foi fornecida e precisa ser validada.
+### 8. Observabilidade insuficiente para diagnostico operacional
 
-**Probabilidade (qualitativa):** média
+**Probabilidade:** Media
 
-**Impacto (qualitativo):** médio
+**Impacto:** Medio
 
-**Justificativa da classificação:** A probabilidade foi classificada como média porque a distribuição da equipe cria uma condição favorável ao risco, mas não confirma sua ocorrência. O impacto foi classificado como médio porque os efeitos tendem a afetar coordenação, prazo e integração, mas sua severidade depende de dependências técnicas ainda não detalhadas.
+**Justificativa:** A ausencia de metricas e tracing pode dificultar diagnostico em ambiente compartilhado ou homologacao, principalmente em falhas de LLM e latencia.
 
-### 5. Impacto das mudanças de requisitos na qualidade do software
+### 9. Validacao de entrada nao cobrir todos os valores de dominio
 
-**Risco:** Impacto das mudanças de requisitos na qualidade do software
+**Probabilidade:** Media
 
-**Descrição:** Alterações nos requisitos podem exigir ajustes rápidos em funcionalidades existentes ou em decisões técnicas já adotadas, afetando a consistência e a estabilidade do software.
+**Impacto:** Medio
 
-**Possíveis impactos no projeto:** Pode reduzir a qualidade da implementação, enfraquecer a cobertura de validação, introduzir defeitos, aumentar retrabalho e dificultar a manutenção do produto.
+**Justificativa:** O risco depende da validacao efetiva no fluxo HTTP. Caso valores invalidos entrem no dominio, podem surgir inconsistencias e comportamento inesperado.
 
-**Fatores que influenciam a ocorrência:** O risco aumenta quando mudanças são incorporadas sem tempo adequado para análise, implementação e validação. Pode ser reduzido por práticas de revisão, testes e controle de mudanças, mas a existência dessas práticas não foi informada e requer validação.
+### 10. Coordenacao em equipe distribuida afetar decisoes e sincronizacao
 
-**Probabilidade (qualitativa):** média
+**Probabilidade:** Media
 
-**Impacto (qualitativo):** Alto
+**Impacto:** Medio
 
-**Justificativa da classificação:** A probabilidade foi classificada como média porque depende de como as mudanças de requisitos são tratadas durante o desenvolvimento. O impacto foi classificado como alto porque problemas de qualidade podem afetar diretamente os resultados do projeto, a estabilidade do software e o esforço de correção.
+**Justificativa:** Equipe distribuida e requisitos em evolucao aumentam necessidade de alinhamento. A classificacao deve ser validada com informacoes sobre rituais, canais e papeis de decisao.
 
-### 6. Necessidade de validação contínua do entendimento dos requisitos
+### 11. Testes nao acompanharem mudancas de contrato e arquitetura
 
-**Risco:** Necessidade de validação contínua do entendimento dos requisitos
+**Probabilidade:** Media
 
-**Descrição:** Como os requisitos evoluem, a equipe pode desenvolver com base em entendimentos desatualizados, incompletos ou não compartilhados de forma uniforme.
+**Impacto:** Alto
 
-**Possíveis impactos no projeto:** Pode gerar funcionalidades desalinhadas, retrabalho, atrasos por necessidade de correção e inconsistências entre o que foi desenvolvido e o que era esperado.
-
-**Fatores que influenciam a ocorrência:** O risco aumenta quando não há mecanismos frequentes de validação do entendimento dos requisitos. Como a existência e a frequência desses mecanismos não foram informadas, há necessidade de validação adicional.
-
-**Probabilidade (qualitativa):** Alta
-
-**Impacto (qualitativo):** Médio
-
-**Justificativa da classificação:** A probabilidade foi classificada como alta porque a evolução dos requisitos torna necessária a validação contínua do entendimento. O impacto foi classificado como médio porque o risco pode gerar retrabalho e desalinhamento, mas sua gravidade depende da rapidez com que erros de entendimento são identificados e corrigidos.
+**Justificativa:** Evolucoes em contrato, validacao, LLM e banco podem introduzir regressao se a suite nao for atualizada junto com as mudancas.
 
 ## 2) Matriz Qualitativa de Riscos
 
-| Probabilidade\Impacto | Baixo | Médio | Alto |
+| Probabilidade\Impacto | Baixo | Medio | Alto |
 |-----------------------|-------|-------|------|
-| **Alta** |  | R6 - Necessidade de validação contínua do entendimento dos requisitos | R1 - Mudanças frequentes nos requisitos |
-| **Média** |  | R3 - Problemas de comunicação em equipe distribuída<br>R4 - Coordenação insuficiente entre atividades da equipe | R2 - Dificuldade de alinhamento sobre escopo e prioridades<br>R5 - Impacto das mudanças de requisitos na qualidade do software |
-| **Baixa** |  |  |  |
+| **Alta** |  |  | R1 - Evolucao dos requisitos<br>R5 - Perda de dados por persistencia em memoria |
+| **Media** |  | R3 - Dependencia de LLM<br>R4 - Heuristica local inadequada<br>R8 - Observabilidade insuficiente<br>R9 - Validacao de entrada<br>R10 - Coordenacao distribuida | R2 - Mudancas de contrato<br>R6 - Evolucao para banco<br>R11 - Testes nao acompanharem mudancas |
+| **Baixa** |  |  | R7 - Exposicao sem autenticacao/autorizacao |
 
-## Observações de incerteza e validação
+## 3) Observacoes de incerteza e validacao
 
-- As classificações devem ser validadas com informações sobre processo de gestão de requisitos, critérios de priorização e controle de mudanças.
-- A análise da equipe distribuída depende de detalhes não fornecidos, como fusos horários, canais de comunicação, frequência de sincronização e nível de dependência entre atividades.
-- O impacto sobre qualidade depende da existência de práticas de revisão, testes e validação, que não foram informadas.
+- A criticidade de R5, R7 e R8 depende do ambiente real de uso: local, homologacao controlada, rede compartilhada ou producao.
+- R2 e R11 devem ser revisitados quando houver decisao sobre schema de erro, filtros, OpenAPI e endpoint dedicado de sugestao.
+- R3 e R4 dependem de a integracao com LLM ser habilitada e dos criterios reais de priorizacao aceitos pela equipe.
+- R10 requer validacao sobre canais, rituais, responsaveis por decisao e cadencia de alinhamento da equipe distribuida.

@@ -229,12 +229,13 @@ Resposta em bullets curtos.
 # Capitulo 6 - Prompts de Gerenciamento de Riscos e Comunicacao
 ## Prompt 1 - Identificacao de Riscos
 ```
-Persona: Voce atua como um especialista em gerenciamento de riscos em projetos de software, com experiencia na identificacao de riscos tecnicos, organizacionais e de processo, especialmente em contextos de alta incerteza.
+Persona: Voce atua como um especialista em gerenciamento de riscos em projetos de software, com experiencia na identificacao de riscos tecnicos, organizacionais, arquiteturais, de codigo e de processo, especialmente em contextos de alta incerteza.
 Tarefa: Identificar possiveis riscos associados ao projeto, com base nas informacoes fornecidas, considerando fatores que podem impactar o andamento, a qualidade ou os resultados do projeto.
 Contexto: Considere que:
 1) Trata-se de um projeto de desenvolvimento de software;
 2) Os requisitos estão em evolucao, podendo sofrer mudancas ao longo do tempo;
 3) A equipe e distribuida, podendo envolver desafios de comunicacao e coordenacao;
+4) A arquitetura do projeto envolve integracao com LLM e existem pontos tecnicos relevantes definidos no README e nas documentacoes
 A analise deve se limitar as informacoes fornecidas e suas implicacoes diretas.
 Saida: Apresente o resultado em formato estruturado, conforme o modelo abaixo:
 Lista de riscos identificados. Para cada risco:
@@ -242,6 +243,7 @@ Lista de riscos identificados. Para cada risco:
 2) Descricao: explicacao breve do risco;
 3) Contexto de ocorrencia: situacao ou condicao em que o risco pode se manifestar.
 Restricoes e diretrizes: Nao assumir informacoes que nao foram fornecidas explicitamente; Indicar claramente quando houver incerteza ou necessidade de validacao; Evitar generalizacoes excessivas ou riscos genericos.
+Saida: Atualize o arquivo docs/riscos/identificacao.md com o novo output
 ```
 ## Prompt 1 - Analise de Riscos
 ```

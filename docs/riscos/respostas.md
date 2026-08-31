@@ -1,140 +1,80 @@
-# Estratégias de Resposta a Riscos
+# Estrategias de Resposta a Riscos
 
-Este documento apresenta alternativas qualitativas de resposta para os riscos previamente identificados e analisados. As estratégias abaixo têm caráter exploratório e não representam uma escolha definitiva. A seleção final depende de informações adicionais sobre escopo, governança, capacidade da equipe, processos de validação e apetite ao risco dos stakeholders.
+Este documento apresenta respostas possiveis para os riscos identificados e analisados. As estrategias nao substituem decisao de projeto; elas indicam como reduzir exposicao, aceitar conscientemente limitacoes do MVP ou preparar evolucoes futuras.
 
-## 1) Estratégias Possíveis de Risco
+## 1) Estrategias por risco
 
-### 1. Mudanças frequentes nos requisitos
+### 1. Evolucao dos requisitos gerar retrabalho e instabilidade de escopo
 
-**Risco:** Mudanças frequentes nos requisitos
+**Mitigar:** manter backlog priorizado, registrar decisoes, revisar impacto antes de aceitar mudancas e validar criterios de aceite em ciclos curtos.
 
-**Descrição:** Os requisitos podem sofrer alterações ao longo do desenvolvimento, afetando funcionalidades planejadas, em andamento ou já implementadas.
+**Aceitar:** aceitar mudancas pequenas e compativeis com o MVP quando o custo de controle formal for maior que o retrabalho esperado.
 
-**Estratégias de resposta possíveis:**
+### 2. Mudancas futuras no contrato da API afetarem consumidores e testes
 
-**Evitar:** Poderia ser aplicada por meio da estabilização prévia de um conjunto mínimo de requisitos antes do desenvolvimento de determinadas funcionalidades. Essa abordagem pode reduzir a exposição ao risco, mas pode ser limitada em contextos nos quais a evolução dos requisitos faz parte da natureza do projeto.
+**Mitigar:** versionar decisoes de contrato, atualizar README/escopo/backlog juntos, adicionar testes de contrato antes de expor mudancas e documentar claramente o que e atual versus planejado.
 
-**Mitigar:** Poderia envolver ciclos curtos de validação, priorização frequente, registro formal de mudanças e avaliação de impacto antes de incorporar alterações. Essa estratégia reduz a probabilidade de retrabalho descontrolado e o impacto sobre prazo e esforço.
+**Evitar:** evitar integrar consumidores externos antes de estabilizar contratos como erro padronizado, filtros e OpenAPI.
 
-**Transferir:** Parte do impacto poderia ser compartilhada com stakeholders responsáveis pela definição de requisitos, por meio de acordos sobre prazos de resposta, critérios de aceite e responsabilidades pela aprovação de mudanças. Em projetos com fornecedores externos, cláusulas contratuais de mudança de escopo também poderiam ser consideradas.
+### 3. Dependencia operacional da integracao opcional com LLM
 
-**Aceitar:** Pode ser considerada quando a incerteza dos requisitos for esperada e o projeto tiver capacidade para absorver ajustes. Nesse caso, a aceitação deve ser consciente, com reserva de tempo ou capacidade para mudanças.
+**Mitigar:** manter timeout, fallback local, validacao de resposta, logs de falha e configuracao explicita por ambiente.
 
-### 2. Dificuldade de alinhamento sobre escopo e prioridades
+**Aceitar:** manter LLM como recurso complementar quando heuristica local for suficiente para o uso minimo.
 
-**Risco:** Dificuldade de alinhamento sobre escopo e prioridades
+### 4. Fallback por heuristica local produzir priorizacoes inadequadas
 
-**Descrição:** A evolução dos requisitos pode gerar entendimentos diferentes sobre o que deve ser priorizado, o que está dentro do escopo e quais mudanças devem ser incorporadas.
+**Mitigar:** validar exemplos de priorizacao com usuarios, ajustar palavras-chave conforme casos reais e criar testes para cenarios representativos.
 
-**Estratégias de resposta possíveis:**
+**Aceitar:** aceitar divergencias pontuais se a prioridade sugerida for apenas apoio e puder ser sobrescrita pelo usuario ou cliente da API.
 
-**Evitar:** Poderia ser aplicada com a definição antecipada de critérios objetivos de priorização, papéis de decisão e limites claros de escopo para cada ciclo de trabalho. Isso pode reduzir a chance de ambiguidades, mas exige disponibilidade dos stakeholders para decidir e validar.
+### 5. Perda de dados por persistencia em memoria
 
-**Mitigar:** Poderia envolver reuniões regulares de alinhamento, backlog priorizado, registro de decisões e comunicação explícita de alterações de prioridade. Essa abordagem reduz o impacto de interpretações divergentes.
+**Evitar:** nao usar a API para dados que precisem de durabilidade enquanto a persistencia em banco nao estiver implementada.
 
-**Transferir:** A responsabilidade por decisões de prioridade pode ser compartilhada com um patrocinador, product owner ou comitê de decisão, caso esses papéis existam. Essa transferência não elimina o risco, mas desloca parte da responsabilidade de decisão para quem tem autoridade sobre escopo e valor de negócio.
+**Mitigar:** documentar a limitacao, restringir uso a demonstracao/homologacao controlada e priorizar PostgreSQL quando houver necessidade de continuidade dos dados.
 
-**Aceitar:** Pode ser considerada quando o desalinhamento potencial tiver baixo impacto imediato ou quando as decisões puderem ser ajustadas rapidamente. A aceitação exige monitoramento para evitar que pequenas divergências se acumulem.
+### 6. Evolucao para banco de dados exigir mudancas tecnicas relevantes
 
-### 3. Problemas de comunicação em equipe distribuída
+**Mitigar:** manter interface de repositorio isolada, planejar migracoes, adicionar testes de integracao e preparar configuracao reproduzivel de banco.
 
-**Risco:** Problemas de comunicação em equipe distribuída
+**Transferir/Compartilhar:** envolver responsaveis por infraestrutura e stakeholders na definicao de ambiente, backup, credenciais e operacao.
 
-**Descrição:** A distribuição da equipe pode dificultar a troca de informações, o compartilhamento de contexto e o esclarecimento de dúvidas durante o desenvolvimento.
+### 7. Exposicao da API sem autenticacao ou autorizacao
 
-**Estratégias de resposta possíveis:**
+**Evitar:** nao expor a API fora de ambiente controlado sem autenticacao/autorizacao.
 
-**Evitar:** Poderia ser aplicada reduzindo dependências críticas entre pessoas ou concentrando decisões sensíveis em momentos sincronizados. Em alguns casos, pode-se evitar atividades distribuídas para tarefas que exigem alta colaboração imediata, mas isso depende da estrutura real da equipe.
+**Mitigar:** limitar rede/acesso no ambiente de execucao e explicitar que autenticacao/autorizacao estao fora do MVP atual.
 
-**Mitigar:** Poderia envolver canais de comunicação definidos, rituais de sincronização, documentação objetiva de decisões, critérios para escalonamento de bloqueios e registro centralizado de informações relevantes. Essa abordagem reduz atrasos e perda de contexto.
+### 8. Observabilidade insuficiente para diagnostico operacional
 
-**Transferir:** Parte do risco pode ser compartilhada com lideranças de equipe, facilitadores ou responsáveis por coordenação, atribuindo a eles a responsabilidade por manter alinhamento e remover bloqueios de comunicação. Ferramentas de gestão também podem apoiar, mas não transferem totalmente o risco.
+**Mitigar:** adicionar logs estruturados por requisicao, metricas basicas de latencia/erro e sinais especificos para chamadas LLM.
 
-**Aceitar:** Pode ser considerada quando a equipe distribuída já tiver boa autonomia, baixa dependência entre tarefas ou quando pequenas latências de comunicação forem toleráveis. Ainda assim, deve haver acompanhamento para identificar bloqueios recorrentes.
+**Aceitar:** aceitar observabilidade minima apenas em execucao local ou demonstracao, quando investigacao operacional avancada nao for necessaria.
 
-### 4. Coordenação insuficiente entre atividades da equipe
+### 9. Validacao de entrada nao cobrir todos os valores de dominio
 
-**Risco:** Coordenação insuficiente entre atividades da equipe
+**Mitigar:** adicionar validacao explicita para titulo, status e prioridade; criar testes para payloads invalidos; alinhar codigos HTTP esperados.
 
-**Descrição:** A equipe distribuída pode ter dificuldade para sincronizar atividades, especialmente quando há dependências entre tarefas ou componentes relacionados.
+**Evitar:** evitar expandir consumidores antes de confirmar que dados invalidos nao entram no dominio.
 
-**Estratégias de resposta possíveis:**
+### 10. Coordenacao em equipe distribuida afetar decisoes e sincronizacao
 
-**Evitar:** Poderia ser aplicada por meio da redução de dependências entre tarefas, divisão clara de responsabilidades e planejamento de entregas que minimizem trabalho paralelo em componentes altamente acoplados.
+**Mitigar:** definir fonte de verdade para escopo, registrar decisoes tecnicas, manter cadencia de alinhamento e sinalizar mudancas de contrato para todos os envolvidos.
 
-**Mitigar:** Poderia envolver planejamento integrado, visibilidade sobre dependências, revisões periódicas de progresso, definição de interfaces entre componentes e integração frequente. Essa estratégia reduz a chance de atrasos por dependência e problemas de integração tardia.
+**Transferir/Compartilhar:** atribuir responsabilidade por priorizacao e aceite a papeis claros de produto/tecnologia, se existirem.
 
-**Transferir:** A coordenação pode ser parcialmente atribuída a líderes técnicos, gerentes de projeto ou responsáveis por integração. Em contextos com fornecedores ou equipes externas, acordos de entrega e pontos de integração podem distribuir responsabilidades.
+### 11. Testes nao acompanharem mudancas de contrato e arquitetura
 
-**Aceitar:** Pode ser considerada quando as atividades forem pouco dependentes entre si ou quando o impacto de uma coordenação imperfeita for limitado. A aceitação deve considerar se atrasos localizados podem ser absorvidos pelo planejamento.
+**Mitigar:** exigir atualizacao de testes junto com mudancas de contrato, adicionar testes de regressao para casos de LLM/fallback e criar testes de integracao quando banco for introduzido.
 
-### 5. Impacto das mudanças de requisitos na qualidade do software
+**Evitar:** evitar concluir itens de contrato ou arquitetura sem evidencia minima em `go test ./...`.
 
-**Risco:** Impacto das mudanças de requisitos na qualidade do software
+## 2) Pontos de validacao com stakeholders
 
-**Descrição:** Alterações nos requisitos podem exigir ajustes rápidos em funcionalidades existentes ou em decisões técnicas já adotadas, afetando a consistência e a estabilidade do software.
-
-**Estratégias de resposta possíveis:**
-
-**Evitar:** Poderia ser aplicada evitando incorporar mudanças de requisitos em funcionalidades consideradas estáveis sem avaliação formal de impacto. Também pode envolver congelamento temporário de escopo em etapas críticas, se isso for aceitável para o projeto.
-
-**Mitigar:** Poderia envolver revisão técnica das mudanças, testes de regressão, critérios mínimos de qualidade, refatoração controlada e validação antes da entrega. Essa abordagem reduz a chance de defeitos e inconsistências decorrentes de alterações.
-
-**Transferir:** Parte do risco pode ser compartilhada com stakeholders que solicitam mudanças, tornando explícitos os impactos sobre prazo, custo, qualidade ou escopo. Em contratos externos, pode-se tratar mudanças como itens sujeitos a replanejamento ou renegociação.
-
-**Aceitar:** Pode ser considerada quando a mudança for pequena, o impacto técnico for limitado ou quando o projeto aceitar um nível maior de instabilidade temporária. Essa aceitação deve ser acompanhada de monitoramento de defeitos e débito técnico.
-
-### 6. Necessidade de validação contínua do entendimento dos requisitos
-
-**Risco:** Necessidade de validação contínua do entendimento dos requisitos
-
-**Descrição:** Como os requisitos evoluem, a equipe pode desenvolver com base em entendimentos desatualizados, incompletos ou não compartilhados de forma uniforme.
-
-**Estratégias de resposta possíveis:**
-
-**Evitar:** Poderia ser aplicada impedindo o início de atividades com requisitos considerados insuficientemente compreendidos ou sem critérios mínimos de aceite. Essa abordagem pode reduzir erros de entendimento, mas pode impactar o ritmo do desenvolvimento.
-
-**Mitigar:** Poderia envolver validações frequentes com stakeholders, refinamento contínuo de requisitos, exemplos de uso, critérios de aceite claros e revisões de entendimento antes da implementação. Essa estratégia reduz a probabilidade de funcionalidades desalinhadas.
-
-**Transferir:** Parte da responsabilidade pode ser compartilhada com stakeholders responsáveis pela validação dos requisitos, estabelecendo prazos e critérios para retorno. Isso não elimina a responsabilidade da equipe técnica, mas torna explícita a dependência de validação externa.
-
-**Aceitar:** Pode ser considerada quando o custo de validação completa for maior que o risco de pequenos ajustes posteriores, especialmente em itens de menor criticidade. A aceitação deve ser limitada a casos em que o retrabalho seja administrável.
-
-## 2) Considerações sobre aplicação das estratégias
-
-### a) Situações em que cada tipo de estratégia tende a ser mais adequada
-
-**Evitar:** Tende a ser mais adequada quando o risco tem impacto alto e existe uma forma viável de remover ou reduzir significativamente a exposição, como estabilizar escopo, adiar itens incertos ou impedir início de atividades sem requisitos mínimos.
-
-**Mitigar:** Tende a ser adequada quando o risco não pode ser eliminado, mas sua probabilidade ou impacto pode ser reduzido por práticas de gestão, comunicação, validação, testes, revisão ou controle de mudanças.
-
-**Transferir:** Tende a ser adequada quando parte do risco depende de decisões, validações ou responsabilidades de terceiros, como stakeholders, fornecedores, lideranças ou papéis formais de negócio. A transferência deve deixar claras responsabilidades, prazos e consequências.
-
-**Aceitar:** Tende a ser adequada quando o risco e inerente ao contexto, quando seu impacto e considerado administrável ou quando o custo de evitar ou mitigar e maior que o beneficio esperado. A aceitação deve ser acompanhada de monitoramento.
-
-### b) Limitações ou trade-offs associados a cada abordagem
-
-**Evitar:** Pode reduzir flexibilidade, atrasar o início de atividades ou exigir maior definição antecipada, o que pode ser difícil em um contexto de requisitos em evolução.
-
-**Mitigar:** Exige disciplina operacional, tempo da equipe e mecanismos consistentes de acompanhamento. Pode reduzir riscos, mas dificilmente os elimina por completo.
-
-**Transferir:** Não remove totalmente o risco do projeto. Mesmo quando responsabilidades são compartilhadas, impactos em prazo, qualidade ou coordenação ainda podem afetar a equipe.
-
-**Aceitar:** Pode ser uma escolha racional em contextos de incerteza, mas aumenta a necessidade de monitoramento. Sem critérios claros, pode se transformar em omissão de tratamento do risco.
-
-## 3) Observações gerais
-
-### a) Dependência de contexto adicional para tomada de decisão
-
-A escolha das respostas depende de informações que não foram fornecidas, como criticidade do software, tamanho e maturidade da equipe, cadencia de entregas, nível de formalidade do processo, disponibilidade dos stakeholders, critérios de qualidade e tolerância a mudanças de escopo.
-
-As sugestões apresentadas devem ser tratadas como alternativas iniciais. A decisão final deve considerar a exposição real de cada risco, a capacidade da equipe de executar as ações e o custo de cada estratégia.
-
-### b) Pontos que exigem validação com stakeholders
-
-- Quem tem autoridade para aprovar mudanças de requisitos e prioridades.
-- Qual nível de mudança de escopo e aceitável durante o desenvolvimento.
-- Quais critérios mínimos de aceite e qualidade devem ser usados.
-- Qual frequência de validação dos requisitos e adequada ao projeto.
-- Quais canais e rituais de comunicação devem ser adotados pela equipe distribuída.
-- Como impactos de mudanças em prazo, esforço e qualidade serão comunicados e aprovados.
+- Se o uso do MVP sera apenas local/controlado ou em ambiente compartilhado.
+- Se dados cadastrados precisam sobreviver a reinicios.
+- Se a integracao com LLM sera habilitada em homologacao ou uso real.
+- Quais criterios tornam uma prioridade aceitavel para a equipe.
+- Quando schema de erro padronizado, filtros, OpenAPI e endpoint dedicado de sugestao devem entrar no escopo.
+- Qual cadencia de alinhamento sera usada pela equipe distribuida.

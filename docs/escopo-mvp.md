@@ -7,75 +7,88 @@ O MVP deve ser suficientemente simples para validação rápida de uso, mas com 
 
 ## Requisitos Funcionais
 
-### RF-01 - Health Check
+### RF-001 - Health Check
 A API deve disponibilizar endpoint de verificação de disponibilidade:
 - `GET /health`
 - resposta com `status` e `timestamp` em UTC
 
-### RF-02 - Cadastro de Tarefa
+### RF-002 - Cadastro de Tarefa
 A API deve permitir criar tarefa com os campos mínimos:
 - `title` (obrigatório)
 - `description` (opcional)
-- `priority` (opcional: `low`, `medium`, `high`)
-- `status` (padrão inicial: `todo`)
+- `priority` (opcional: `low`, `medium`, `high`, `critic`)
+- `status` (opcional: `todo`, `doing`, `done`; padrão inicial: `todo`)
 
-### RF-03 - Listagem de Tarefas
-A API deve permitir listar tarefas cadastradas, incluindo filtros básicos:
-- por `status`
-- por `priority`
+### RF-003 - Listagem e Consulta de Tarefas
+A API deve permitir listar todas as tarefas cadastradas e consultar uma tarefa por identificador:
+- `GET /tasks`
+- `GET /tasks/{id}`
 
-### RF-04 - Atualização de Tarefa
+Observação: filtros por `status` e `priority` não fazem parte do contrato atual do MVP. Podem ser tratados como evolução futura caso sejam priorizados.
+
+### RF-004 - Atualização de Tarefa
 A API deve permitir atualização parcial dos campos da tarefa:
+- endpoint: `PUT /tasks/{id}`
 - `title`
 - `description`
 - `priority`
 - `status`
 
-### RF-05 - Remoção de Tarefa
+### RF-005 - Remoção de Tarefa
 A API deve permitir exclusão de tarefa por identificador único.
 
-### RF-06 - Sugestão de Prioridade Assistida por IA
-A API deve oferecer mecanismo para sugerir prioridade de tarefa com base em título e descrição:
+### RF-006 - Sugestão de Prioridade Assistida por IA
+A API deve oferecer mecanismo interno para sugerir prioridade de tarefa com base em título e descrição quando a prioridade não for informada explicitamente:
 - entrada: contexto textual da tarefa
-- saída: prioridade sugerida (`low`, `medium`, `high`) e justificativa curta
-- em indisponibilidade do provedor de IA, retornar erro tratável sem indisponibilizar a API inteira
+- saída: prioridade sugerida (`low`, `medium`, `high`, `critic`)
+- em indisponibilidade do provedor de IA, usar heurística local sem indisponibilizar a API inteira
 
-### RF-07 - Contrato de Resposta Padronizado
-A API deve retornar respostas JSON consistentes para sucesso e erro, incluindo:
-- código HTTP adequado (`200`, `201`, `204`, `400`, `404`, `422`, `500`)
-- Payloads JSON tipados via schema
-- mensagem técnica curta para troubleshooting
+Observação: endpoint dedicado de sugestão e justificativa curta não fazem parte do contrato atual do MVP.
+
+### RF-007 - Contrato de Resposta JSON
+A API deve retornar respostas JSON para sucesso e erro, incluindo:
+- código HTTP adequado (`200`, `201`, `204`, `400`, `404`, `500`)
+- payload de sucesso com estrutura compatível com os modelos de tarefa
+- payload de erro com mensagem técnica curta para troubleshooting
+
+Observação: schema único de erro com campos como `code`, `message` e `details` é evolução planejada de qualidade e ainda deve ser validado antes de ser tratado como contrato obrigatório.
+
+## Regras de Domínio do Contrato Atual
+
+- Valores aceitos para `status`: `todo`, `doing`, `done`.
+- Valores aceitos para `priority`: `low`, `medium`, `high`, `critic`.
+- O valor `canceled` não faz parte do contrato atual do MVP, ainda que exista como constante técnica no modelo.
 
 ## Requisitos Não Funcionais
 
-### RNF-01 - Stack e Compatibilidade
+### RNF-001 - Stack e Compatibilidade
 - implementação em Go 1.25+
 - framework HTTP: Fiber
 - execução local em ambiente Windows (PowerShell) e compatível com ambientes Linux em CI/CD
 
-### RNF-02 - Desempenho Inicial
+### RNF-002 - Desempenho Inicial
 - endpoints CRUD devem responder com latência adequada para uso interno (meta inicial p95 <= 300 ms em carga baixa)
 - endpoint `/health` deve ser leve e não depender de serviços externos
 
-### RNF-03 - Confiabilidade
+### RNF-003 - Confiabilidade
 - tratamento explícito de erros de validação e erros internos
 - API não deve encerrar processo por erro de requisição inválida
 
-### RNF-04 - Segurança Básica para MVP
+### RNF-004 - Segurança Básica para MVP
 - não expor segredos em código-fonte
 - configuração via variáveis de ambiente
 - validação de payload de entrada para reduzir risco de dados inválidos
 
-### RNF-05 - Observabilidade Mínima
+### RNF-005 - Observabilidade Mínima
 - logs estruturados por requisição com nível de severidade
 - registro de falhas de integração com IA
 
-### RNF-06 - Qualidade e Manutenibilidade
+### RNF-006 - Qualidade e Manutenibilidade
 - organização de código por camadas (handler, service, repository)
 - lint/testes automatizados no pipeline mínimo
 - cobertura inicial em testes unitários para fluxos críticos
 
-### RNF-07 - Testabilidade
+### RNF-007 - Testabilidade
 
 #### Objetivo de Testabilidade
 Garantir que os componentes da API sejam verificáveis de forma isolada e integrada, com execução automatizada em ambiente local e pipeline.

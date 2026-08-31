@@ -10,7 +10,7 @@ API REST em Go (Fiber) para gestão de tarefas com sugestão de prioridade por h
 
 ## Stack
 
-- Go `1.25.x`
+- Go `1.25+`
 - Fiber `v2`
 - Arquitetura em camadas: `api -> services -> repositories`
 - Persistência em memória (map com mutex)
@@ -40,7 +40,7 @@ tests/
 
 ```powershell
 git clone <url-do-repositorio>
-cd "Labotatorio Projeto"
+cd "Micro API"
 copy .env.example .env
 .\activate-go-env.ps1
 make install
@@ -143,7 +143,7 @@ Exemplo de resposta:
 ### Tasks
 
 - `POST /tasks`
-- `GET /tasks`
+- `GET /tasks` (lista todas as tarefas; filtros nao fazem parte do contrato atual do MVP)
 - `GET /tasks/:id`
 - `PUT /tasks/:id`
 - `DELETE /tasks/:id`
@@ -155,6 +155,14 @@ Status esperados:
 - Exclusão: `204`
 - Não encontrado: `404`
 - JSON inválido: `400`
+
+Formato atual de erro:
+
+```json
+{
+  "error": "mensagem tecnica curta"
+}
+```
 
 Exemplo de criação:
 
@@ -184,6 +192,8 @@ Resposta de conteudo JSON com:
 ```json
 {"priority":"low|medium|high|critic"}
 ```
+
+Observacao: o MVP atual usa a sugestao internamente na criacao/atualizacao de tarefas quando `priority` nao e informada. Endpoint dedicado de sugestao e justificativa curta nao fazem parte do contrato atual.
 
 ### Fallback Seguro
 
