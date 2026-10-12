@@ -1,0 +1,38 @@
+sequenceDiagram
+    autonumber
+    actor Client as Cliente HTTP / Integrador
+    participant Handler as Task Routes / Handler<br/>app/api
+    participant Service as TaskService<br/>app/services
+    participant Advisor as PriorityAdvisor<br/>app/services
+    participant Repo as TaskRepository<br/>app/repositories
+
+    Client->>Handler: PUT /tasks/{id}<br/>JSON TaskUpdate
+    Handler->>Handler: Parse do body JSON
+    alt JSON malformado
+        Handler-->>Client: 400 Bad Request<br/>{"error":"invalid request body"}
+    else JSON valido
+        Handler->>Service: Update(id, TaskUpdate)
+        Service->>Repo: GetByID(id)
+        alt tarefa inexistente
+            Repo-->>Service: ErrTaskNotFound
+            Service-->>Handler: ErrTaskNotFound
+            Handler-->>Client: 404 Not Found<br/>{"error":"task not found"}
+        else tarefa encontrada
+            Repo-->>Service: Task atual
+            Service->>Service: Atualiza somente campos informados
+            Note over Service: Validacao de titulo vazio, status invalido<br/>e priority invalida esta documentada como pendente.
+
+            alt title/description mudou e priority nao foi informada
+                Service->>Advisor: SuggestPriority(title, description)
+                Advisor-->>Service: Prioridade sugerida por LLM ou heuristica
+            else priority informada ou texto sem mudanca
+                Service->>Service: Mantem prioridade explicita ou atual
+            end
+
+            Service->>Repo: Update(Task)
+            Repo->>Repo: Substitui registro em memoria<br/>preserva created_at se necessario
+            Repo-->>Service: Task atualizada
+            Service-->>Handler: Task
+            Handler-->>Client: 200 OK<br/>TaskOut JSON
+        end
+    end

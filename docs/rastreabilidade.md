@@ -25,7 +25,7 @@ Esta matriz relaciona os requisitos do escopo e do backlog com os artefatos que 
 
 | ID | Requisito | Fonte | Implementacao / Artefato | Evidencia | Status | Observacoes |
 |---|---|---|---|---|---|---|
-| RT-001 / RNF-006 | Estrutura tecnica por camadas | `docs/backlog.md`, `docs/escopo-mvp.md`, `docs/arquitetura-componentes.mmd` | `app/api`, `app/services`, `app/repositories`, `app/models` | Testes por camada em `tests` e `app/main_test.go` | Implementado | A separacao esta refletida em pacotes e interfaces. |
+| RT-001 / RNF-006 | Estrutura tecnica por camadas | `docs/backlog.md`, `docs/escopo-mvp.md`, `docs/diagramas/arquitetura-componentes.mmd` | `app/api`, `app/services`, `app/repositories`, `app/models` | Testes por camada em `tests` e `app/main_test.go` | Implementado | A separacao esta refletida em pacotes e interfaces. |
 | RT-002 / RNF-007 | Testes unitarios automatizados | `docs/backlog.md`, `docs/escopo-mvp.md` | `tests/task_service_test.go`, `tests/task_repository_test.go`, `tests/priority_advisor_test.go` | `go test ./...` | Implementado | Cobre servico, repositorio e prioridade. |
 | RT-003 / RNF-007 | Testes de endpoint | `docs/backlog.md`, `docs/escopo-mvp.md` | `tests/task_routes_test.go`, `app/main_test.go` | `go test ./...` | Implementado | Cobre status HTTP e payloads principais. |
 | RT-004 / RNF-005 | Padronizacao de erros e logs estruturados | `docs/backlog.md`, `docs/escopo-mvp.md` | `app/api/task_routes.go`, `app/services/priority_advisor.go` | Testes parciais de erro HTTP | Pendente | Erro unico `code/message/details` e logs por requisicao ainda nao estao implementados. |

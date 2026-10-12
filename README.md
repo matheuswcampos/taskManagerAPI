@@ -28,6 +28,169 @@ docs/
 tests/
 ```
 
+## Diagramas de Arquitetura
+
+Os diagramas estao versionados em Mermaid no diretorio `docs/diagramas` e representam o estado atual do MVP. Eles foram ajustados a partir da estrutura real do projeto: API em Go/Fiber, separacao em camadas, persistencia em memoria e integracao opcional com LLM.
+
+### Como Ler os Diagramas
+
+- A visao estrutural mostra quais componentes existem hoje e quais responsabilidades pertencem a cada camada.
+- As visoes comportamentais mostram jornadas tecnicas ja presentes no codigo: criacao e atualizacao de tarefas.
+- Fluxos marcados como lacuna documentada nao devem ser assumidos como implementados por agentes de desenvolvimento.
+- Banco de dados, autenticacao/autorizacao e persistencia duravel nao fazem parte do MVP atual.
+
+### Visao Estrutural - Componentes
+
+Fonte: [`docs/diagramas/arquitetura-componentes.mmd`](docs/diagramas/arquitetura-componentes.mmd)
+
+```mermaid
+flowchart LR
+    Client["Cliente HTTP / Integrador"]
+    OpenAI["OpenAI Chat Completions API\nDependencia externa opcional"]
+    Env["Variaveis de ambiente\nOPENAI_API_KEY, OPENAI_BASE_URL,\nOPENAI_MODEL, PRIORITY_ADVISOR_TIMEOUT"]
+
+    subgraph TaskAPI["Container: Micro-API de Tarefas (Go + Fiber)"]
+        Main["main.go\nBootstrap HTTP e injecao de dependencias"]
+        Limits["Limites atuais do MVP\nsem autenticacao/autorizacao\nsem banco de dados\ndados perdidos ao reiniciar"]
+
+        subgraph API["Camada API - app/api"]
+            Router["Task Routes / Handlers\nPOST, GET, PUT, DELETE /tasks"]
+            Health["Health Handler\nGET /health"]
+            ErrorFormat["Erro HTTP atual\nJSON com campo error"]
+        end
+
+        subgraph Services["Camada Service - app/services"]
+            TaskService["TaskService\nRegras de CRUD, defaults e atualizacao parcial"]
+            PriorityAdvisor["PriorityAdvisor\nSugestao de prioridade por LLM ou heuristica"]
+            ValidationGap["Lacuna documentada\nvalidacao de titulo vazio,\nstatus e priority invalidos"]
+        end
+
+        subgraph Models["Camada Model - app/models"]
+            TaskModels["Task, TaskCreate,\nTaskUpdate, TaskOut"]
+        end
+
+        subgraph Repositories["Camada Repository - app/repositories"]
+            TaskRepository["TaskRepository\nPersistencia em memoria\nmap + mutex"]
+        end
+    end
+
+    Client -->|"HTTP JSON"| Router
+    Client -->|"HTTP GET"| Health
+    Main -->|"registra rotas e dependencias"| Router
+    Main -->|"define limites operacionais"| Limits
+    Main -->|"cria"| TaskService
+    Main -->|"cria"| TaskRepository
+    Main -->|"cria"| PriorityAdvisor
+    Router -->|"JSON valido convertido em DTO"| TaskService
+    Router -->|"JSON invalido ou recurso inexistente"| ErrorFormat
+    TaskService -->|"entidades e DTOs"| TaskModels
+    TaskService -->|"persistencia/leitura"| TaskRepository
+    TaskRepository -->|"Task em memoria"| TaskModels
+    TaskService -.->|"validacao pendente conforme docs/requisitos-verificaveis.md"| ValidationGap
+    TaskService -->|"consulta sugestao quando priority ausente"| PriorityAdvisor
+    PriorityAdvisor -->|"le configuracao"| Env
+    PriorityAdvisor -->|"HTTP JSON opcional"| OpenAI
+    OpenAI -->|"priority ou erro"| PriorityAdvisor
+    PriorityAdvisor -->|"priority sugerida ou fallback"| TaskService
+    TaskService -->|"TaskOut"| Router
+    Router -->|"HTTP JSON"| Client
+```
+
+### Visao Comportamental - Criacao de Tarefa
+
+Fonte: [`docs/diagramas/comportamental-criacao-tarefa.mmd`](docs/diagramas/comportamental-criacao-tarefa.mmd)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Client as Cliente HTTP / Integrador
+    participant Handler as Task Routes / Handler<br/>app/api
+    participant Service as TaskService<br/>app/services
+    participant Advisor as PriorityAdvisor<br/>app/services
+    participant OpenAI as OpenAI API<br/>externa opcional
+    participant Repo as TaskRepository<br/>app/repositories
+
+    Client->>Handler: POST /tasks<br/>JSON TaskCreate
+    Handler->>Handler: Parse do body JSON
+    alt JSON malformado
+        Handler-->>Client: 400 Bad Request<br/>{"error":"invalid request body"}
+    else JSON valido
+        Handler->>Service: Create(TaskCreate)
+        Service->>Service: Normaliza title/description<br/>define status=todo se ausente
+
+        Note over Service: Validacao de titulo vazio, status invalido<br/>e priority invalida esta documentada como pendente.
+
+        alt priority informada
+            Service->>Service: Mantem prioridade recebida
+        else priority ausente
+            Service->>Advisor: SuggestPriority(title, description)
+            alt OPENAI_API_KEY ausente
+                Advisor->>Advisor: Calcula prioridade por heuristica local
+            else LLM habilitado
+                Advisor->>OpenAI: POST /chat/completions<br/>modelo e contexto da tarefa
+                alt resposta valida
+                    OpenAI-->>Advisor: {"priority":"low|medium|high|critic"}
+                else timeout, HTTP nao-2xx, JSON invalido ou prioridade invalida
+                    OpenAI-->>Advisor: Erro ou resposta invalida
+                    Advisor->>Advisor: Aplica fallback heuristico
+                end
+            end
+            Advisor-->>Service: Prioridade sugerida
+        end
+
+        Service->>Repo: Create(Task)
+        Repo->>Repo: Armazena em memoria<br/>map protegido por mutex
+        Repo-->>Service: Task criada
+        Service-->>Handler: Task
+        Handler-->>Client: 201 Created<br/>TaskOut JSON
+    end
+```
+
+### Visao Comportamental - Atualizacao de Tarefa
+
+Fonte: [`docs/diagramas/comportamental-atualizacao-tarefa.mmd`](docs/diagramas/comportamental-atualizacao-tarefa.mmd)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Client as Cliente HTTP / Integrador
+    participant Handler as Task Routes / Handler<br/>app/api
+    participant Service as TaskService<br/>app/services
+    participant Advisor as PriorityAdvisor<br/>app/services
+    participant Repo as TaskRepository<br/>app/repositories
+
+    Client->>Handler: PUT /tasks/{id}<br/>JSON TaskUpdate
+    Handler->>Handler: Parse do body JSON
+    alt JSON malformado
+        Handler-->>Client: 400 Bad Request<br/>{"error":"invalid request body"}
+    else JSON valido
+        Handler->>Service: Update(id, TaskUpdate)
+        Service->>Repo: GetByID(id)
+        alt tarefa inexistente
+            Repo-->>Service: ErrTaskNotFound
+            Service-->>Handler: ErrTaskNotFound
+            Handler-->>Client: 404 Not Found<br/>{"error":"task not found"}
+        else tarefa encontrada
+            Repo-->>Service: Task atual
+            Service->>Service: Atualiza somente campos informados
+            Note over Service: Validacao de titulo vazio, status invalido<br/>e priority invalida esta documentada como pendente.
+
+            alt title/description mudou e priority nao foi informada
+                Service->>Advisor: SuggestPriority(title, description)
+                Advisor-->>Service: Prioridade sugerida por LLM ou heuristica
+            else priority informada ou texto sem mudanca
+                Service->>Service: Mantem prioridade explicita ou atual
+            end
+
+            Service->>Repo: Update(Task)
+            Repo->>Repo: Substitui registro em memoria<br/>preserva created_at se necessario
+            Repo-->>Service: Task atualizada
+            Service-->>Handler: Task
+            Handler-->>Client: 200 OK<br/>TaskOut JSON
+        end
+    end
+```
+
 ## Reprodução Rápida (Máquina Limpa)
 
 ### Pré-requisitos

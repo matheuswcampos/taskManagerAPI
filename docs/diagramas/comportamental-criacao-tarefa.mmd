@@ -1,0 +1,43 @@
+sequenceDiagram
+    autonumber
+    actor Client as Cliente HTTP / Integrador
+    participant Handler as Task Routes / Handler<br/>app/api
+    participant Service as TaskService<br/>app/services
+    participant Advisor as PriorityAdvisor<br/>app/services
+    participant OpenAI as OpenAI API<br/>externa opcional
+    participant Repo as TaskRepository<br/>app/repositories
+
+    Client->>Handler: POST /tasks<br/>JSON TaskCreate
+    Handler->>Handler: Parse do body JSON
+    alt JSON malformado
+        Handler-->>Client: 400 Bad Request<br/>{"error":"invalid request body"}
+    else JSON valido
+        Handler->>Service: Create(TaskCreate)
+        Service->>Service: Normaliza title/description<br/>define status=todo se ausente
+
+        Note over Service: Validacao de titulo vazio, status invalido<br/>e priority invalida esta documentada como pendente.
+
+        alt priority informada
+            Service->>Service: Mantem prioridade recebida
+        else priority ausente
+            Service->>Advisor: SuggestPriority(title, description)
+            alt OPENAI_API_KEY ausente
+                Advisor->>Advisor: Calcula prioridade por heuristica local
+            else LLM habilitado
+                Advisor->>OpenAI: POST /chat/completions<br/>modelo e contexto da tarefa
+                alt resposta valida
+                    OpenAI-->>Advisor: {"priority":"low|medium|high|critic"}
+                else timeout, HTTP nao-2xx, JSON invalido ou prioridade invalida
+                    OpenAI-->>Advisor: Erro ou resposta invalida
+                    Advisor->>Advisor: Aplica fallback heuristico
+                end
+            end
+            Advisor-->>Service: Prioridade sugerida
+        end
+
+        Service->>Repo: Create(Task)
+        Repo->>Repo: Armazena em memoria<br/>map protegido por mutex
+        Repo-->>Service: Task criada
+        Service-->>Handler: Task
+        Handler-->>Client: 201 Created<br/>TaskOut JSON
+    end

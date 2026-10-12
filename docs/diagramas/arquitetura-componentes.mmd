@@ -1,0 +1,50 @@
+flowchart LR
+    Client["Cliente HTTP / Integrador"]
+    OpenAI["OpenAI Chat Completions API\nDependencia externa opcional"]
+    Env["Variaveis de ambiente\nOPENAI_API_KEY, OPENAI_BASE_URL,\nOPENAI_MODEL, PRIORITY_ADVISOR_TIMEOUT"]
+
+    subgraph TaskAPI["Container: Micro-API de Tarefas (Go + Fiber)"]
+        Main["main.go\nBootstrap HTTP e injecao de dependencias"]
+        Limits["Limites atuais do MVP\nsem autenticacao/autorizacao\nsem banco de dados\ndados perdidos ao reiniciar"]
+
+        subgraph API["Camada API - app/api"]
+            Router["Task Routes / Handlers\nPOST, GET, PUT, DELETE /tasks"]
+            Health["Health Handler\nGET /health"]
+            ErrorFormat["Erro HTTP atual\nJSON com campo error"]
+        end
+
+        subgraph Services["Camada Service - app/services"]
+            TaskService["TaskService\nRegras de CRUD, defaults e atualizacao parcial"]
+            PriorityAdvisor["PriorityAdvisor\nSugestao de prioridade por LLM ou heuristica"]
+            ValidationGap["Lacuna documentada\nvalidacao de titulo vazio,\nstatus e priority invalidos"]
+        end
+
+        subgraph Models["Camada Model - app/models"]
+            TaskModels["Task, TaskCreate,\nTaskUpdate, TaskOut"]
+        end
+
+        subgraph Repositories["Camada Repository - app/repositories"]
+            TaskRepository["TaskRepository\nPersistencia em memoria\nmap + mutex"]
+        end
+    end
+
+    Client -->|"HTTP JSON"| Router
+    Client -->|"HTTP GET"| Health
+    Main -->|"registra rotas e dependencias"| Router
+    Main -->|"define limites operacionais"| Limits
+    Main -->|"cria"| TaskService
+    Main -->|"cria"| TaskRepository
+    Main -->|"cria"| PriorityAdvisor
+    Router -->|"JSON valido convertido em DTO"| TaskService
+    Router -->|"JSON invalido ou recurso inexistente"| ErrorFormat
+    TaskService -->|"entidades e DTOs"| TaskModels
+    TaskService -->|"persistencia/leitura"| TaskRepository
+    TaskRepository -->|"Task em memoria"| TaskModels
+    TaskService -.->|"validacao pendente conforme docs/requisitos-verificaveis.md"| ValidationGap
+    TaskService -->|"consulta sugestao quando priority ausente"| PriorityAdvisor
+    PriorityAdvisor -->|"le configuracao"| Env
+    PriorityAdvisor -->|"HTTP JSON opcional"| OpenAI
+    OpenAI -->|"priority ou erro"| PriorityAdvisor
+    PriorityAdvisor -->|"priority sugerida ou fallback"| TaskService
+    TaskService -->|"TaskOut"| Router
+    Router -->|"HTTP JSON"| Client
