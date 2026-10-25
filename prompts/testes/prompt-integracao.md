@@ -38,7 +38,7 @@ Não proponha cenários para frontend, banco de dados, autenticação, mensageri
 
 Responda em Markdown com:
 
-
+1. Os casos devem ser gerados no diretório `docs/casos-teste`.
 2. Uma breve seção `## Estratégia` com escopo e abordagem de isolamento.
 3. Uma tabela `## Cenários` com as colunas: `ID`, `Fluxo integrado`, `Pré-condições`, `Ações`, `Resultados esperados` e `Camadas verificadas`.
 4. Uma seção `## Prioridade de automação` classificando cada cenário como alta, média ou baixa e justificando em uma frase.
